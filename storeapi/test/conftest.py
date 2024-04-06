@@ -1,10 +1,12 @@
+import os
 from typing import AsyncGenerator, Generator
 import pytest
 from fastapi.testclient import TestClient
 from httpx import AsyncClient, ASGITransport
 
-from storeapi.main import app
-from storeapi.routers.posts import post_table, comments_table
+os.environ["ENV_STATE"] = "test"
+from storeapi.database import database  # noqa: E402(tell ruff)
+from storeapi.main import app  # noqa: E402(tell ruff)
 
 
 @pytest.fixture(scope="session")
@@ -19,9 +21,13 @@ def client() -> Generator:
 
 @pytest.fixture(autouse=True)
 async def db() -> AsyncGenerator:
-    post_table.clear()
-    comments_table.clear()
+    """
+    Because we have set DB_FORCE_ROLL_BACK in config.py
+    The database will not change in test condition
+    """
+    await database.connect()
     yield
+    await database.disconnect()
 
 
 @pytest.fixture()
