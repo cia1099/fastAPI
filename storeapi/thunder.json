@@ -1,0 +1,103 @@
+{
+    "client": "Thunder Client",
+    "collectionName": "FastAPI",
+    "dateExported": "2024-04-04T19:45:48.288Z",
+    "version": "1.1",
+    "folders": [],
+    "requests": [
+        {
+            "_id": "c216515d-eccc-49f0-85ee-de9f73f7bdbf",
+            "colId": "9231b424-b667-4617-9761-f6f28cb83d18",
+            "containerId": "",
+            "name": "hello",
+            "url": "http://127.0.0.1:8000/hello",
+            "method": "GET",
+            "sortNum": 10000,
+            "created": "2024-04-04T19:16:02.264Z",
+            "modified": "2024-04-04T19:16:09.242Z",
+            "headers": [],
+            "params": [],
+            "tests": []
+        },
+        {
+            "_id": "759e915c-c5f2-4d72-a9e3-9ed3b1ef1c75",
+            "colId": "9231b424-b667-4617-9761-f6f28cb83d18",
+            "containerId": "",
+            "name": "post",
+            "url": "http://127.0.0.1:8000/post",
+            "method": "POST",
+            "sortNum": 30000,
+            "created": "2024-04-04T19:19:10.672Z",
+            "modified": "2024-04-04T19:21:48.517Z",
+            "headers": [],
+            "params": [],
+            "body": {
+                "type": "json",
+                "raw": "{\n  \"body\": \"this is my first post!\"\n}",
+                "form": []
+            },
+            "tests": []
+        },
+        {
+            "_id": "35352803-5741-4b3b-9c38-c4af24bbc791",
+            "colId": "9231b424-b667-4617-9761-f6f28cb83d18",
+            "containerId": "",
+            "name": "get all posts",
+            "url": "http://127.0.0.1:8000/post",
+            "method": "GET",
+            "sortNum": 40000,
+            "created": "2024-04-04T19:22:03.177Z",
+            "modified": "2024-04-04T19:22:08.735Z",
+            "headers": [],
+            "params": [],
+            "tests": []
+        },
+        {
+            "_id": "f09b814a-20fd-444a-abfe-0c9c6adaf306",
+            "colId": "9231b424-b667-4617-9761-f6f28cb83d18",
+            "containerId": "",
+            "name": "comment",
+            "url": "http://127.0.0.1:8000/comment",
+            "method": "POST",
+            "sortNum": 50000,
+            "created": "2024-04-04T19:24:26.216Z",
+            "modified": "2024-04-04T19:44:48.203Z",
+            "headers": [],
+            "params": [],
+            "body": {
+                "type": "json",
+                "raw": "{\n  \"body\": \"change my post\",\n  \"post_id\": 1\n}",
+                "form": []
+            },
+            "tests": []
+        },
+        {
+            "_id": "b6503bb9-aa2b-4b71-ae1b-45e288fa18c0",
+            "colId": "9231b424-b667-4617-9761-f6f28cb83d18",
+            "containerId": "",
+            "name": "postId=0_comments",
+            "url": "http://127.0.0.1:8000/post/1/comment",
+            "method": "GET",
+            "sortNum": 60000,
+            "created": "2024-04-04T19:29:37.362Z",
+            "modified": "2024-04-04T19:44:58.400Z",
+            "headers": [],
+            "params": [],
+            "tests": []
+        },
+        {
+            "_id": "e6b29c9a-0ae3-4894-8474-c0c01620f8f0",
+            "colId": "9231b424-b667-4617-9761-f6f28cb83d18",
+            "containerId": "",
+            "name": "post with comment",
+            "url": "http://127.0.0.1:8000/post/1",
+            "method": "GET",
+            "sortNum": 70000,
+            "created": "2024-04-04T19:42:25.578Z",
+            "modified": "2024-04-04T19:45:08.507Z",
+            "headers": [],
+            "params": [],
+            "tests": []
+        }
+    ]
+}
