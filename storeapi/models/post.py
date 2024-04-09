@@ -1,8 +1,11 @@
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class UserPostIn(BaseModel):
-    body: str
+    body: str = Field(
+        description="user information",
+        title="body",
+    )
 
 
 class UserPost(UserPostIn):
@@ -12,8 +15,13 @@ class UserPost(UserPostIn):
 
 
 class CommentIn(BaseModel):
-    body: str
-    post_id: int
+    body: str = Field(
+        description="content of comment",
+        min_length=1,
+    )
+    post_id: int = Field(
+        description="certain post identify",
+    )
 
 
 class Comment(CommentIn):

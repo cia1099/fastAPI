@@ -50,6 +50,11 @@ async def get_comments_on_post(post_id: int):
 
 @router.get("/post/{post_id}", response_model=UserPostWithComments)
 async def get_post_with_comments(post_id: int):
+    """
+    Endpoint for retrieving all commnent by a specific post id
+    :param: post_id: int
+    :return: {UserPostWithComments}
+    """
     post = await find_post(post_id)
     if not post:
         raise HTTPException(status_code=404, detail="Post not found")
