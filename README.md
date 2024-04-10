@@ -125,7 +125,7 @@ None
 ```
 
 * ##### async Function
-async是单核单线程跑多个任务，因此一定会有些许的延迟，花费多工任务的时间比单任务的时间还长。但不会使单线程停滞在一个任务上。
+async是单核单线程跑多个任务，因此一定会有些许的延迟，花费多工任务的时间比单任务的时间还长。但不会使单线程停滞在等待任务上。
 ```py
 import asyncio
 import time
@@ -192,8 +192,7 @@ sync hello
 * ##### wait statement
 使用asyncio.wait()不会抛异常，而会让异步中断，进程继续运行，并且还能保留被中断的异步任务对象。
 ```py
-import asyncio
-import time
+import asyncio, time
 
 async def async_sleep(n):
     await asyncio.sleep(n)
@@ -227,7 +226,7 @@ elapsed time = 1.0031888484954834
 ```py
 import asyncio, time
 from multiprocessing import Process
-# def ...
+# def ...same as above block
 def arun():
     asyncio.run(process_async_funcs())
 
@@ -245,3 +244,122 @@ elapsed time = 1.0695140361785889
 '''
 ```
 
+* ##### Multiprocessing
+
+可以用`multiprocessing.Queue`将每个Process所运行的结果存放到这个共享记忆体，再由FIFO来取结果。
+```py
+from multiprocessing import Process, Queue
+import time
+
+
+def check_value_in_list(x, i, number_of_process, queue):
+    lower = int(i * 10**8 / number_of_process)
+    upper = int((i + 1) * 10**8)
+    number_of_hit = []
+    for i in range(lower, upper):
+        if i in x:
+            number_of_hit += [i]
+    queue.put((lower, upper, number_of_hit))
+
+if __name__ == "__main__":
+    num_process = 4
+    queue = Queue(num_process)
+    tic = time.time()
+    ps = [
+        Process(target=check_value_in_list, args=([1, 2, 3], i, num_process, queue))
+        for i in range(0, num_process)
+    ]
+    for p in ps:
+        p.start()
+    # check_value_in_list([1, 2, 3], 0, num_process, queue)
+    while num_process > 0:
+        if queue.empty():
+            time.sleep(0.5)
+        else:
+            num_process -= 1
+            lower, upper, number_of_hit = queue.get()
+            print(
+                "Between",
+                lower,
+                "and",
+                upper,
+                f"we have {len(number_of_hit)}{number_of_hit}",
+                "value in the range",
+            )
+    print("elapsed time =", time.time() - tic, "second")
+'''
+Between 0 and 100000000 we have 3[1, 2, 3] value in the range
+Between 25000000 and 200000000 we have 0[] value in the range
+Between 50000000 and 300000000 we have 0[] value in the range
+Between 75000000 and 400000000 we have 0[] value in the range
+elapsed time = 9.07421326637268 second
+'''
+```
+`multiprocessing.cpu_count()`方法可以帮助我们知道设备的核心数量；可以使用`multiprocessing.Pool`来自动分配一个池帮我们管理，其中有很奇葩的方法`Pool.starmap()`，可以用tuple集合来传多参数：
+```py
+from multiprocessing import Pool, cpu_count
+import time
+
+
+def square(x, y, z):
+    return x**y + z
+
+if __name__ == "__main__":
+    num_cpu_to_use = max(1, cpu_count() - 1)
+    print("Number of cpus being used:", num_cpu_to_use)
+    tic = time.time()
+    star_args = [(x, 3 - i, 1) for i, x in enumerate([1, 2, 3])]
+    with Pool(num_cpu_to_use) as mp_pool:
+        result = mp_pool.starmap(square, star_args)
+    print(result, "Pool elapsed time =", time.time() - tic)
+    tic = time.time()
+    result = map(lambda x, y, z: x**y + z, [1, 2, 3], [3, 2, 1], [1] * 3)
+    print(list(result), "Main Thread elapsed time =", time.time() - tic)
+
+'''
+Number of cpus being used: 7
+[2, 5, 4] Pool elapsed time = 0.05268287658691406
+[2, 5, 4] Main Thread elapsed time = 3.0994415283203125e-06
+'''
+```
+因此当我们想要一次获得所有结果时，可以利用`Pool.starmap()`，上面例子可以改写成：
+```py
+from multiprocessing import Pool, cpu_count
+import time
+
+
+def check_value_in_list(x, i, number_of_process):
+    lower = int(i * 10**8 / number_of_process)
+    upper = int((i + 1) * 10**8)
+    number_of_hit = []
+    for i in range(lower, upper):
+        if i in x:
+            number_of_hit += [i]
+    return lower, upper, number_of_hit
+
+if __name__ == "__main__":
+    num_cpu_to_use = max(1, cpu_count() - 1)
+    star_args = [([1, 2, 3], i, 4) for i in range(4)]
+    tic = time.time()
+    with Pool(num_cpu_to_use) as mp_pool:
+        results = mp_pool.starmap(check_value_in_list, star_args) #main thread will be block here
+    for result in results:
+        lower, upper, number_of_hit = result
+        print(
+            "Between",
+            lower,
+            "and",
+            upper,
+            f"we have {len(number_of_hit)}{number_of_hit}",
+            "value in the range",
+        )
+    print("Pool elapsed time =", time.time() - tic)
+'''
+Between 0 and 100000000 we have 3[1, 2, 3] value in the range
+Between 25000000 and 200000000 we have 0[] value in the range
+Between 50000000 and 300000000 we have 0[] value in the range
+Between 75000000 and 400000000 we have 0[] value in the range
+Pool elapsed time = 8.973009824752808
+'''
+```
+其实和`Queue`的效率一样，但是用Queue的话，主线程不会被堵死在`starmap()`
