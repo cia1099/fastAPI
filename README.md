@@ -8,6 +8,32 @@ uvicorn <project directory>.main:app --reload
 
 
 ---
+Pipenv
+---
+`pip freeze`可以查看module的版本\
+Module pipenv是一个套件管理包，可以取代requirement.txt\
+Pipfile可以编辑里面的套件，有这个文件以后用`pipenv install`就能全部安装好到venv，连python的版本都能在这文件指定。要启动pipenv建立的venv，只需输入`pipenv shell`就能进入该venv；离开就打`exit`，操作更直观。
+要安装dev-package只要输入`pipenv install -—dev <package_name>`，就能将套件安装在dev-package。以后在别的设备开发，只要输入pipenv install —dev就会将Pipfile的dev-package安装到venv环境。
+使用`pipenv uninstall <package_name>`可以卸载，并将Pipfile的package除去。\
+最好在venv的环境下安装pipenv，这样pipenv安装的套件都能在这个venv的文件夹安装套件：
+
+```shell
+cd project
+python -m venv venv
+source venv/bin/activate
+pip install pipenv
+pipenv install || pipenv install --dev
+# VIRTUAL_ENV=path/to/your/venv pipenv install
+```
+Refs
+https://stackoverflow.com/questions/50598220/pipenv-how-to-force-virtualenv-directory \
+https://stackoverflow.com/questions/52540121/make-pipenv-create-the-virtualenv-in-the-same-folder
+
+
+### Pylyzer 
+https://github.com/mtshiba/pylyzer \
+是一个很好的lsp，可惜目前只支援vscode。
+
 PyTest
 ---
 

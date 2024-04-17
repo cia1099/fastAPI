@@ -1,0 +1,22 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+fastapi = "*"
+uvicorn = {extras = ["standard"], version = "*"}
+sqlalchemy = "*"
+databases = {extras = ["aiosqlite"], version = "*"}
+python-dotenv = "*"
+pydantic-settings = "*"
+
+[dev-packages]
+ruff = "*"
+black = {extras = ["d"], version = "*"}
+isort = "*"
+pytest = "*"
+httpx = "*"
+
+[requires]
+python_version = "3.10"
