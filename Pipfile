@@ -10,6 +10,9 @@ sqlalchemy = "*"
 databases = {extras = ["aiosqlite"], version = "*"}
 python-dotenv = "*"
 pydantic-settings = "*"
+rich = "*"
+asgi-correlation-id = "*"
+python-json-logger = "*"
 
 [dev-packages]
 ruff = "*"

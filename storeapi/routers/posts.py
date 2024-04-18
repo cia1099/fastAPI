@@ -1,3 +1,5 @@
+import logging
+
 from fastapi import APIRouter, HTTPException
 from storeapi.database import comment_table, database, post_table
 from storeapi.models.post import (
@@ -10,23 +12,32 @@ from storeapi.models.post import (
 
 router = APIRouter()
 
+logger = logging.getLogger(__name__)
+
 
 async def find_post(post_id: int):
+    logger.info(f"Finding post with id {post_id}")
     query = post_table.select().where(post_table.c.id == post_id)
+    logger.debug(query)
     return await database.fetch_one(query)
 
 
 @router.post("/post", response_model=UserPost, status_code=201)
 async def create_post(post: UserPostIn):
+    logger.info("Create a post")
     data = post.model_dump()  # previously .dict()
     query = post_table.insert().values(data)
+    logger.debug(query)
     last_record_id = await database.execute(query)
     return {**data, "id": last_record_id}
 
 
 @router.get("/post", response_model=list[UserPost])
 async def get_all_posts():
+    # really confused extra argument in logging.LogRecord
+    logger.info("Getting all posts", extra={"email": "5566@gmail.com"})
     query = post_table.select()
+    logger.debug(query, extra={"email": "sadadadad@example.net"})
     return await database.fetch_all(query)
 
 
@@ -34,7 +45,10 @@ async def get_all_posts():
 async def create_comment(comment: CommentIn):
     post = await find_post(comment.post_id)
     if not post:
-        raise HTTPException(status_code=404, detail="Post not found")
+        # logger.error(f"Post with id {comment.post_id} not found")
+        raise HTTPException(
+            status_code=404, detail="Post id:%d not found" % comment.post_id
+        )
 
     data = comment.model_dump()  # previously .dict()
     query = comment_table.insert().values(data)
@@ -44,7 +58,9 @@ async def create_comment(comment: CommentIn):
 
 @router.get("/post/{post_id}/comment", response_model=list[Comment])
 async def get_comments_on_post(post_id: int):
+    logger.info("Getting comments on post %d" % post_id)
     query = comment_table.select().where(comment_table.c.post_id == post_id)
+    logger.debug(query)
     return await database.fetch_all(query)
 
 
@@ -55,9 +71,11 @@ async def get_post_with_comments(post_id: int):
     :param: post_id: int
     :return: {UserPostWithComments}
     """
+    logger.info("Getting post %d and its comments" % post_id)
     post = await find_post(post_id)
     if not post:
-        raise HTTPException(status_code=404, detail="Post not found")
+        # logger.error("Post with post id %d not found" % post_id)
+        raise HTTPException(status_code=404, detail="Post id:%d not found" % post_id)
 
     return {
         "post": post,

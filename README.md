@@ -34,6 +34,66 @@ https://stackoverflow.com/questions/52540121/make-pipenv-create-the-virtualenv-i
 https://github.com/mtshiba/pylyzer \
 是一个很好的lsp，可惜目前只支援vscode。
 
+Logging
+---
+最基础的log设定方式，能够日志console和file，在专案目录下创建一个`loggin_conf.py`的设定档案：
+```py
+import logging
+from logging.config import dictConfig
+
+handlers = ["default", "rotating_file"]
+def configure_logging() -> None:
+    dictConfig(
+        {
+            "version": 1,
+            "disable_existing_loggers": False,
+            "formatters": {
+                "console": {
+                    "class": "logging.Formatter",
+                    "datefmt": "%Y-%m-%dT%H:%M:%S",
+                    "format": "%(name)s:%(lineno)d - %(message)s",
+                },
+                "file": {
+                    "class": "logging.Formatter",  # "pythonjsonlogger.jsonlogger.JsonFormatter",
+                    "datefmt": "%Y-%m-%dT%H:%M:%S",
+                    # For JsonFormatter, the format string just defines what keys are included in the log record
+                    # It's a bit clunky, but it's the way to do it for now
+                    "format": "%(asctime)s %(msecs)03d %(levelname)-s %(name)s %(lineno)d %(message)s",
+                },
+            },
+            "handlers": {
+                "default": {
+                    "class": "logging.StreamHandler", #"rich.logging.RichHandler"
+                    "level": "DEBUG",
+                    "formatter": "console",
+                },
+                "rotating_file": {
+                    "class": "logging.handlers.RotatingFileHandler",
+                    "level": "DEBUG",
+                    "formatter": "file",
+                    "filename": "storeapi.log",
+                    "maxBytes": 1024 * 1024,  # 1 MB
+                    "backupCount": 2,
+                    "encoding": "utf8",
+                },
+            },
+            "loggers": {
+                # if you would like to cosistent with uvicorn formate
+                # "uvicorn": {"handlers": handlers, "level": "INFO"},
+                "storeapi": {
+                    "handlers": handlers,
+                    "level": "DEBUG", #if isinstance(config, DevConfig) else "INFO",
+                    "propagate": False,
+                },
+                # "databases": {"handlers": ["default"], "level": "WARNING"},
+                # "aiosqlite": {"handlers": ["default"], "level": "WARNING"},
+            },
+        }
+    )
+```
+想要使用"rich.logging.RichHandler"就要安装`rich`套件。\
+"pythonjsonlogger.jsonlogger.JsonFormatter"要安装`python-json-logger`，让输出的日志可以给NoSQL的资料库系统来归档。
+
 PyTest
 ---
 
