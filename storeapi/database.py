@@ -9,7 +9,15 @@ post_table = sqlalchemy.Table(
     "posts",
     metadata,
     sqlalchemy.Column("id", sqlalchemy.Integer, primary_key=True),
-    sqlalchemy.Column("body", sqlalchemy.String)
+    sqlalchemy.Column("body", sqlalchemy.String),
+)
+
+user_table = sqlalchemy.Table(
+    "users",
+    metadata,
+    sqlalchemy.Column("id", sqlalchemy.Integer, primary_key=True),
+    sqlalchemy.Column("email", sqlalchemy.String, unique=True),
+    sqlalchemy.Column("password", sqlalchemy.String),
 )
 
 comment_table = sqlalchemy.Table(
@@ -17,7 +25,7 @@ comment_table = sqlalchemy.Table(
     metadata,
     sqlalchemy.Column("id", sqlalchemy.Integer, primary_key=True),
     sqlalchemy.Column("body", sqlalchemy.String),
-    sqlalchemy.Column("post_id", sqlalchemy.ForeignKey("posts.id"), nullable=False)
+    sqlalchemy.Column("post_id", sqlalchemy.ForeignKey("posts.id"), nullable=False),
 )
 
 engine = sqlalchemy.create_engine(
