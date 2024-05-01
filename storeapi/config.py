@@ -18,6 +18,10 @@ class GlobalConfig(BaseConfig):
     DATABASE_URL: Optional[str] = None
     DB_FORCE_ROLL_BACK: bool = False
     LOGTAIL_API_KEY: Optional[str] = None
+    SECRET_KEY: Optional[str] = (
+        "9b73f2a1bdd7ae163444473d29a6885ffa22ab26117068f72a5a56a74d12d1fc"
+    )
+    ALGORITHM: Optional[str] = "HS256"
 
 
 class DevConfig(GlobalConfig):
