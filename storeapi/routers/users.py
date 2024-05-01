@@ -37,7 +37,7 @@ async def register(user: UserIn):
     return {**data, "id": last_record_id}
 
 
-@router.post("/login", status_code=201)
+@router.post("/login", status_code=status.HTTP_201_CREATED)
 async def login(user: UserIn):
     user = await authenticate_user(user.email, user.password)
     access_token = create_access_token(user.email)
