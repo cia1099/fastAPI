@@ -1,6 +1,6 @@
 import logging
 
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import Depends, APIRouter, HTTPException
 from storeapi.database import comment_table, database, post_table
 from storeapi.models.post import (
     Comment,
@@ -11,6 +11,7 @@ from storeapi.models.post import (
 )
 from storeapi.models.user import User
 from storeapi.security import get_current_user, oauth2_scheme
+from typing import Annotated
 
 router = APIRouter()
 
@@ -25,10 +26,12 @@ async def find_post(post_id: int):
 
 
 @router.post("/post", response_model=UserPost, status_code=201)
-async def create_post(post: UserPostIn, request: Request):
+async def create_post(
+    post: UserPostIn, current_user: Annotated[User, Depends(get_current_user)]
+):
     logger.info("Create a post")
-    current_user: User = await get_current_user(await oauth2_scheme(request))  # noqa
-    data = post.model_dump()  # previously .dict()
+    # current_user: User = await get_current_user(await oauth2_scheme(request))  # when inject no longer need
+    data = {**post.model_dump(), "user_id": current_user.id}
     query = post_table.insert().values(data)
     logger.debug(query)
     last_record_id = await database.execute(query)
@@ -45,9 +48,11 @@ async def get_all_posts():
 
 
 @router.post("/comment", response_model=Comment, status_code=201)
-async def create_comment(comment: CommentIn, request: Request):
+async def create_comment(
+    comment: CommentIn, current_user: Annotated[User, Depends(get_current_user)]
+):
     logger.debug("Create a Comment")
-    current_user: User = await get_current_user(await oauth2_scheme(request))  # noqa
+    # current_user: User = await get_current_user(await oauth2_scheme(request))  # when inject no longer need
     post = await find_post(comment.post_id)
     if not post:
         # logger.error(f"Post with id {comment.post_id} not found")
@@ -55,7 +60,7 @@ async def create_comment(comment: CommentIn, request: Request):
             status_code=404, detail="Post id:%d not found" % comment.post_id
         )
 
-    data = comment.model_dump()  # previously .dict()
+    data = {**comment.model_dump(), "user_id": current_user.id}
     query = comment_table.insert().values(data)
     last_record_id = await database.execute(query)
     return {**data, "id": last_record_id}
