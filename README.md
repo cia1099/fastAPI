@@ -6,6 +6,41 @@ uvicorn <project directory>.main:app --reload
 ```
 加入`--reload`参数可以让每次修改保存后，都会重新运行服务器。
 
+FastAPI会自动解析JSON的field给Model，但要注意model的field只能多不能少，多的field会自动被忽略，千万注意在API声明的Model类型有没有满足返回的JSON能够被解析：
+```py
+class UserPost(UserPostIn):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+    user_id: int
+
+class UserPostWithLikes(UserPost):
+    model_config = ConfigDict(from_attributes=True)
+    likes: int
+
+class PostSorting(str, Enum):
+    new = "new"
+    old = "old"
+    most_likes = "most_likes"
+
+@router.get("/post", response_model=list[UserPostWithLikes])
+async def get_all_posts(sorting: PostSorting = PostSorting.new):
+    logger.info("Getting all posts")
+    query = None
+    # only support above python 3.10 with switch statement
+    match sorting:
+        case PostSorting.new:
+            query = select_post_and_likes.order_by(post_table.c.id.desc())
+        case PostSorting.old:
+            query = select_post_and_likes.order_by(post_table.c.id.asc())
+        case PostSorting.most_likes:
+            query = select_post_and_likes.order_by(sqlalchemy.desc("likes"))
+
+    logger.debug(query)
+
+    return await database.fetch_all(query)
+```
+例如上述代码块，在`response_model`可以用`[UserPost]`和`[UserPostWithLikes]`在JSON字串里有"like" field，但`UserPost`少了仍然可以被解析。\
+传入Enum参数可以让fastAPI自动辨识为request的query，解义为Url就是http://localhost:8000/post?sorting=new
 
 ---
 Pipenv
@@ -33,6 +68,53 @@ https://stackoverflow.com/questions/52540121/make-pipenv-create-the-virtualenv-i
 ### Pylyzer 
 https://github.com/mtshiba/pylyzer \
 是一个很好的lsp，可惜目前只支援vscode。
+
+PyTest
+---
+
+使用pytest指令：
+```shell
+# 显示每次执行测试方法时所用到的指令
+pytest --fixtures-per-test
+```
+执行pytest的文件目录结构如下：
+```shell
+<project directory>
+├── __init__.py
+├── main.py
+└── test
+    ├── __init__.py
+    ├── conftest.py
+    └── test_post.py
+```
+在专案目录下创建一个目录test，该目录下要而外一个`__init__.py`；设定档`conftest.py`,想要测试的脚本命名一定要包含test，例如：`test_XXX.py`或`XXX_test.py`。
+
+* ##### @pytest.fixture()
+表示pytest的作用域，在声明的方法上加入，可以让pytest自己根据参数的名字找到对应的对象，使开发者不需要在传入对象或创建对象。例如在执行一个测试方法时，所有对象都要重建，pytest会帮我们把所有对象重建，再执行测试逻辑；因此对象生成最好写一个方法来返回产生。
+
+有时候pytest会失败，将执行目录切换到test资料夹的父目录`storeapi`就可以运行成功。
+
+* ##### @pytest.mark.anyio
+要测试的方法，前面要加上的签名。然后定义的方法能传入前面有`@pytest.fixture()`的声明方法参数。
+
+* ##### @pytest.mark.parametrize()
+想重复跑一个方法不同的参数，可以用这个声明，在parentheses里用字符串逗号来区分参数名，用bracket来区分每次的呼叫，用tuple来区分呼叫传入的参数：
+```py
+@pytest.mark.anyio
+@pytest.mark.parametrize(
+    "sorting, expected_order",
+    [
+        (PostSorting.new.value, [2, 1]),
+        (PostSorting.old.value, [1, 2])
+    ],
+)
+async def test_get_all_posts_sorting(
+    async_client: AsyncClient,
+    logged_in_token: str,
+    sorting: str,
+    expected_order: list[int],
+): #....
+```
 
 Logging
 ---
@@ -93,31 +175,6 @@ def configure_logging() -> None:
 ```
 想要使用"rich.logging.RichHandler"就要安装`rich`套件。\
 "pythonjsonlogger.jsonlogger.JsonFormatter"要安装`python-json-logger`，让输出的日志可以给NoSQL的资料库系统来归档。
-
-PyTest
----
-
-使用pytest指令：
-```shell
-# 显示每次执行测试方法时所用到的指令
-pytest --fixtures-per-test
-```
-执行pytest的文件目录结构如下：
-```shell
-<project directory>
-├── __init__.py
-├── main.py
-└── test
-    ├── __init__.py
-    ├── conftest.py
-    └── test_post.py
-```
-在专案目录下创建一个目录test，该目录下要而外一个`__init__.py`；设定档`conftest.py`,想要测试的脚本命名一定要包含test，例如：`test_XXX.py`或`XXX_test.py`。
-
-* ##### @pytest.fixture()
-表示pytest的作用域，在声明的方法上加入，可以让pytest自己根据参数的名字找到对应的对象，使开发者不需要在传入对象或创建对象。例如在执行一个测试方法时，所有对象都要重建，pytest会帮我们把所有对象重建，再执行测试逻辑；因此对象生成最好写一个方法来返回产生。
-
-有时候pytest会失败，将执行目录切换到test资料夹的父目录`storeapi`就可以运行成功。
 
 Python Basic
 ---

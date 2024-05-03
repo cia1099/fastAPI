@@ -48,15 +48,6 @@ async def create_post(
     return {**data, "id": last_record_id}
 
 
-# @router.get("/post", response_model=list[UserPost])
-# async def get_all_posts():
-#     # really confused extra argument in logging.LogRecord
-#     logger.info("Getting all posts", extra={"email": "5566@gmail.com"})
-#     query = post_table.select()
-#     logger.debug(query, extra={"email": "sadadadad@example.net"})
-#     return await database.fetch_all(query)
-
-
 class PostSorting(str, Enum):
     new = "new"
     old = "old"

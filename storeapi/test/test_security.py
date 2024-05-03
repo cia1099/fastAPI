@@ -36,15 +36,8 @@ async def test_login_user(registered_user: dict, async_client: AsyncClient):
 
 @pytest.mark.anyio
 async def test_authenticate_user_not_found(async_client: AsyncClient):
-    # with pytest.raises(security.HTTPException):
-    # await security.authenticate_user("test@example.net", "1234")
-    res = await async_client.post(
-        "/login", json={"email": "test@example.net", "password": "1234"}
-    )
-    assert res.status_code == 401
-    assert {
-        "detail": security.credentials_exception.detail
-    }.items() <= res.json().items()
+    with pytest.raises(security.HTTPException):
+        await security.authenticate_user("test@example.net", "1234")
 
 
 @pytest.mark.anyio
@@ -57,9 +50,7 @@ async def test_authenticate_user_wrong_password(
         "/login", json={"email": "test@example.net", "password": "wrong password"}
     )
     assert res.status_code == 401
-    assert {
-        "detail": security.credentials_exception.detail
-    }.items() <= res.json().items()
+    assert {"detail": "Invalid email or password"}.items() <= res.json().items()
 
 
 @pytest.mark.anyio
@@ -75,3 +66,10 @@ async def test_get_current_user(registered_user: dict, async_client: AsyncClient
 async def test_get_current_user_invalid_token():
     with pytest.raises(security.HTTPException):
         await security.get_current_user("invalid token")
+
+
+@pytest.mark.anyio
+async def test_get_current_user_invalid_token(registered_user: dict):
+    token = security.create_access_token(registered_user["email"], 1440)
+    with pytest.raises(security.HTTPException):
+        await security.get_current_user(token)
