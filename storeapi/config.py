@@ -15,6 +15,11 @@ class BaseConfig(BaseSettings):
 
 
 class GlobalConfig(BaseConfig):
+    """
+    TODO: setting dotenv and pydantic_settings
+          can work in virtual environment variable.
+    """
+
     DATABASE_URL: Optional[str] = None
     DB_FORCE_ROLL_BACK: bool = False
     LOGTAIL_API_KEY: Optional[str] = None
