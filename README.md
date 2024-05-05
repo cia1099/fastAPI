@@ -68,6 +68,11 @@ https://stackoverflow.com/questions/52540121/make-pipenv-create-the-virtualenv-i
 ### Pylyzer 
 https://github.com/mtshiba/pylyzer \
 是一个很好的lsp，可惜目前只支援vscode。
+使用pylyzer server需要主动开启服务器：
+```shell
+source venv/bin/activate
+ERG_PATH=venv/lib/python3.10/site-packages/.erg pylyzer --server
+```
 
 PyTest
 ---
