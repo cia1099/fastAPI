@@ -27,6 +27,8 @@ class GlobalConfig(BaseConfig):
         "9b73f2a1bdd7ae163444473d29a6885ffa22ab26117068f72a5a56a74d12d1fc"
     )
     ALGORITHM: Optional[str] = "HS256"
+    MAILGUN_API_KEY: Optional[str] = None
+    MAILGUN_DOMAIN: Optional[str] = None
 
 
 class DevConfig(GlobalConfig):

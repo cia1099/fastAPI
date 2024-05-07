@@ -28,15 +28,18 @@ def confirmation_token_expire_minutes() -> int:
     return 1440
 
 
-def create_access_token(email: str, minutes: int = 30) -> str:
+def create_access_token(
+    email: str, token_type: Literal["access", "confirmation"] = "access"
+) -> str:
     logger.debug("Creating access token", extra={"email": email})
     expire = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(
-        minutes=minutes
+        minutes=(
+            access_token_expire_minutes()
+            if token_type == "access"
+            else confirmation_token_expire_minutes()
+        )
     )
-    access_type = (
-        "access" if minutes <= access_token_expire_minutes() else "confirmation"
-    )
-    jwt_data = {"sub": email, "exp": expire, "type": access_type}
+    jwt_data = {"sub": email, "exp": expire, "type": token_type}
     encoded_jwt = jwt.encode(
         jwt_data, key=config.SECRET_KEY, algorithm=config.ALGORITHM
     )
@@ -68,6 +71,8 @@ async def authenticate_user(email: str, password: str):
         raise create_credentials_exception("Invalid email or password")
     if not verify_password(password, user.password):
         raise create_credentials_exception("Invalid email or password")
+    if not user.confirmed:
+        raise create_credentials_exception("User has not confirmed email")
     return user
 
 
