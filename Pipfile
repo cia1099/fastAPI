@@ -16,13 +16,13 @@ python-json-logger = "*"
 python-jose = "*"
 python-multipart = "*"
 passlib = {extras = ["bcrypt"], version = "*"}
+httpx = "*"
 
 [dev-packages]
 ruff = "*"
 black = {extras = ["d"], version = "*"}
 isort = "*"
 pytest = "*"
-httpx = "*"
 pytest-mock = "*"
 
 [requires]

@@ -65,15 +65,6 @@ https://stackoverflow.com/questions/50598220/pipenv-how-to-force-virtualenv-dire
 https://stackoverflow.com/questions/52540121/make-pipenv-create-the-virtualenv-in-the-same-folder
 
 
-### Pylyzer 
-https://github.com/mtshiba/pylyzer \
-是一个很好的lsp，可惜目前只支援vscode。
-使用pylyzer server需要主动开启服务器：
-```shell
-source venv/bin/activate
-ERG_PATH=venv/lib/python3.10/site-packages/.erg pylyzer --server
-```
-
 PyTest
 ---
 
@@ -81,6 +72,8 @@ PyTest
 ```shell
 # 显示每次执行测试方法时所用到的指令
 pytest --fixtures-per-test
+# 单独测试一个脚本
+pytest <file_path>
 ```
 执行pytest的文件目录结构如下：
 ```shell
@@ -511,3 +504,14 @@ Pool elapsed time = 8.973009824752808
 '''
 ```
 其实和`Queue`的效率一样，但是用Queue的话，主线程不会被堵死在`starmap()`
+
+
+### Pylyzer 
+https://github.com/mtshiba/pylyzer \
+是一个很好的lsp，可惜目前只支援vscode。
+使用pylyzer server需要主动开启服务器：
+```shell
+source venv/bin/activate
+ERG_PATH=venv/lib/python3.10/site-packages/.erg pylyzer --server
+```
+在2023/05/08的时候无法辨识venv安装的package，import会报错；因此不值得使用。
