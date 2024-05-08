@@ -18,7 +18,8 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
-def arun(email: str, url: str):
+def async_call_send_confirmed_email(email: str, url: str):
+    logger.debug("Multi process is running", extra={"email": email})
     asyncio.run(tasks.send_user_registration_email(email, url))
 
 
@@ -44,7 +45,9 @@ async def register(user: UserIn, background_tasks: BackgroundTasks, request: Req
     # decode to URL from function name
     confirm_url = request.url_for("confirm_email", token=token)
 
-    p = Process(target=arun, args=(user.email, str(confirm_url)))
+    p = Process(
+        target=async_call_send_confirmed_email, args=(user.email, str(confirm_url))
+    )
     p.daemon = True  # detached ref.https://stackoverflow.com/questions/49123439/python-how-to-run-process-in-detached-mode
     p.start()
     logger.debug(

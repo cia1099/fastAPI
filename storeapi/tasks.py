@@ -12,7 +12,7 @@ class APIResponseError(Exception):
 
 
 async def send_simple_message(to: str, subject: str, body: str):
-    logger.debug(f"Sending email to '{to[:3]}' with subject '{subject[:20]}'")
+    logger.debug(f"Sending email to '{to.split('@')[0]}' with subject '{subject[:20]}'")
     async with httpx.AsyncClient() as client:
         try:
             response = await client.post(
@@ -37,6 +37,9 @@ async def send_simple_message(to: str, subject: str, body: str):
 
 
 async def send_user_registration_email(email: str, confirmation_url: str):
+    if config.ENV_STATE == "dev":
+        with open("send_email.txt", "w") as f:
+            f.write("To verify multiprocess are available")
     return await send_simple_message(
         email,
         "Successfully signed up",
