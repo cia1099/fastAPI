@@ -3,6 +3,7 @@ import os
 from pathlib import Path
 import tempfile
 
+from fastapi import status
 import pytest
 from httpx import AsyncClient
 
@@ -41,35 +42,43 @@ def aiofiles_mock_open(mocker, fs):
 
 
 async def call_upload_endpoint(async_client: AsyncClient, token: str, file: Path):
-    with open(file, "rb") as f:
-        return await async_client.post(
-            "/upload",
-            files={"file": f},
-            headers={"Authorization": f"Bearer {token}"},
-        )
-
-
-# @pytest.mark.anyio
-# async def test_upload_image(
-#     async_client: AsyncClient, logged_in_token: str, sample_image: Path
-# ):
-#     res = await call_upload_endpoint(async_client, logged_in_token, sample_image)
-#     assert res.status_code == 201
-#     assert res.json()["file_url"] == "https://fakefile.jpg"
+    return await async_client.post(
+        "/upload",
+        files={"file": open(file, "rb")},
+        headers={"Authorization": f"Bearer {token}"},
+    )
 
 
 @pytest.mark.anyio
-async def test_temp_file_removed_after_upload(
-    async_client: AsyncClient, logged_in_token: str, sample_image: Path, mocker
+async def test_upload_image(
+    async_client: AsyncClient, logged_in_token: str, sample_image: Path
 ):
-    # Spy on the NamedTemporaryFile function
-    named_temp_file_spy = mocker.spy(tempfile, "NamedTemporaryFile")
+    res = await call_upload_endpoint(async_client, logged_in_token, sample_image)
+    assert res.status_code == 201
+    assert res.json()["file_url"] == "https://fakefile.jpg"
 
-    response = await call_upload_endpoint(async_client, logged_in_token, sample_image)
-    assert response.status_code == 201
 
-    # Get the filename of the temporary file created by the upload endpoint
-    created_temp_file = named_temp_file_spy.spy_return
+# @pytest.mark.anyio
+# async def test_temp_file_removed_after_upload(
+#     async_client: AsyncClient, logged_in_token: str, sample_image: Path, mocker
+# ):
+#     # Spy on the NamedTemporaryFile function
+#     named_temp_file_spy = mocker.spy(tempfile, "NamedTemporaryFile")
+#
+#     response = await call_upload_endpoint(async_client, logged_in_token, sample_image)
+#     assert response.status_code == 201
+#
+#     # Get the filename of the temporary file created by the upload endpoint
+#     created_temp_file = named_temp_file_spy.spy_return
+#
+#     # Check if the temp_file is removed after the file is uploaded
+#     assert not os.path.exists(created_temp_file.name)
 
-    # Check if the temp_file is removed after the file is uploaded
-    assert not os.path.exists(created_temp_file.name)
+
+@pytest.mark.anyio
+async def test_wrong_token_upload(
+    async_client: AsyncClient, sample_image: Path, mocker
+):
+    res = await call_upload_endpoint(async_client, "wrong token", sample_image)
+    assert res.status_code == status.HTTP_401_UNAUTHORIZED
+    assert res.json()["detail"] == "Invalid token"

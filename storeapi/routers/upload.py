@@ -1,9 +1,12 @@
 import logging
 import tempfile
+from typing import Annotated
 
 import aiofiles
-from fastapi import APIRouter, HTTPException, UploadFile, status
+from fastapi import APIRouter, HTTPException, UploadFile, status, Depends
 from storeapi.libs.b2 import b2_upload_file
+from storeapi.security import get_current_user
+from storeapi.models.user import User
 
 logger = logging.getLogger(__name__)
 
@@ -13,7 +16,9 @@ CHUNK_SIZE = 1024 * 1024
 
 
 @router.post("/upload", status_code=201)
-async def upload_file(file: UploadFile):
+async def upload_file(
+    file: UploadFile, current_user: Annotated[User, Depends(get_current_user)]
+):
     try:
         with tempfile.NamedTemporaryFile() as temp_file:
             temp_name = temp_file.name
