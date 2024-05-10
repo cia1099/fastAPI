@@ -5,6 +5,7 @@ from fastapi.testclient import TestClient
 from httpx import AsyncClient, ASGITransport, Response, Request
 from unittest.mock import AsyncMock, Mock
 
+# trick for test environment, we import database after setting
 os.environ["ENV_STATE"] = "test"
 from storeapi.database import database, user_table  # noqa: E402(tell ruff)
 from storeapi.main import app  # noqa: E402(tell ruff)
