@@ -63,6 +63,7 @@ async def test_create_post(
         "id": 1,
         "body": body,
         "user_id": registered_user["id"],
+        "image_url": None,
     }.items() <= res.json().items()
     assert res.json()["id"] == 1
 

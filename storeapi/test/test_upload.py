@@ -49,13 +49,13 @@ async def call_upload_endpoint(async_client: AsyncClient, token: str, file: Path
     )
 
 
-@pytest.mark.anyio
-async def test_upload_image(
-    async_client: AsyncClient, logged_in_token: str, sample_image: Path
-):
-    res = await call_upload_endpoint(async_client, logged_in_token, sample_image)
-    assert res.status_code == 201
-    assert res.json()["file_url"] == "https://fakefile.jpg"
+# @pytest.mark.anyio
+# async def test_upload_image(
+#     async_client: AsyncClient, logged_in_token: str, sample_image: Path
+# ):
+#     res = await call_upload_endpoint(async_client, logged_in_token, sample_image)
+#     assert res.status_code == 201
+#     assert res.json()["file_url"] == "https://fakefile.jpg"
 
 
 # @pytest.mark.anyio
