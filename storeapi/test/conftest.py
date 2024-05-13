@@ -28,7 +28,7 @@ async def db() -> AsyncGenerator:
     The database will not change in test condition
     """
     await database.connect()
-    yield
+    yield database
     await database.disconnect()
 
 
@@ -68,7 +68,7 @@ async def logged_in_token(async_client: AsyncClient, confirmed_user: dict) -> st
 
 
 @pytest.fixture(autouse=True)
-def mock_httpx_client(mocker) -> Mock:
+def mock_tasks_httpx_client(mocker) -> Mock:
     """
     Fixture to mock the HTTPX client so that we never make any
     real HTTP requests (especially important when registering users).

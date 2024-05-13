@@ -74,6 +74,9 @@ PyTest
 pytest --fixtures-per-test
 # 单独测试一个脚本
 pytest <file_path>
+# 单独测试一个pytest.mark.anyio
+pytest -k <method name>
+#e.g. pytest -k test_generate_and_add_to_post_success
 ```
 执行pytest的文件目录结构如下：
 ```shell
