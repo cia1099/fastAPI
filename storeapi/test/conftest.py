@@ -81,3 +81,11 @@ def mock_tasks_httpx_client(mocker) -> Mock:
     mocked_client.return_value.__aenter__.return_value = mocked_async_client
 
     return mocked_async_client
+
+
+@pytest.fixture()
+def mock_generate_cute_creature_api(mocker):
+    return mocker.patch(
+        "storeapi.tasks._generate_cute_creature_api",
+        return_value={"output_url": "https://example.com/image.jpg"},
+    )

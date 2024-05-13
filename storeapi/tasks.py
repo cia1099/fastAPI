@@ -88,6 +88,7 @@ async def generate_and_add_to_post(
 ):
     try:
         res = await _generate_cute_creature_api(prompt)
+        # res = {"output_url": "12312321"} #test assert_called() in test_post.py
     except APIResponseError:
         return await send_simple_message(
             email,
@@ -103,8 +104,8 @@ async def generate_and_add_to_post(
         .values(image_url=res["output_url"])
     )
     logger.debug("Connecting to database to update post id %d" % post_id)
-    db_id = await database.execute(query)
-    assert db_id == post_id
+    record_id = await database.execute(query)
+    assert record_id == post_id
     logger.debug("Database connection in background task closed")
     await send_simple_message(
         email,

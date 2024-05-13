@@ -87,3 +87,4 @@ async def test_generate_and_add_to_post_success(
     updated_post = await db.fetch_one(query)
 
     assert updated_post.image_url == json_data["output_url"]
+    assert updated_post.body == "Test to generate image"

@@ -1,6 +1,10 @@
-import logging
 from enum import Enum
-from fastapi import Depends, APIRouter, HTTPException
+from multiprocessing import Process
+import asyncio
+import logging
+from fastapi import Depends, APIRouter, HTTPException, Request, BackgroundTasks
+import sqlalchemy
+from typing import Annotated
 from storeapi.database import comment_table, database, post_table, like_table
 from storeapi.models.post import (
     Comment,
@@ -14,8 +18,7 @@ from storeapi.models.post import (
 )
 from storeapi.models.user import User
 from storeapi.security import get_current_user
-import sqlalchemy
-from typing import Annotated
+from storeapi.tasks import generate_and_add_to_post, send_user_registration_email
 
 router = APIRouter()
 
@@ -35,9 +38,17 @@ async def find_post(post_id: int):
     return await database.fetch_one(query)
 
 
+def arun_generate_and_add_to_post(*args):
+    asyncio.run(generate_and_add_to_post(*args[:-1], database, args[-1]))
+
+
 @router.post("/post", response_model=UserPost, status_code=201)
 async def create_post(
-    post: UserPostIn, current_user: Annotated[User, Depends(get_current_user)]
+    post: UserPostIn,
+    current_user: Annotated[User, Depends(get_current_user)],
+    request: Request,
+    background_tasks: BackgroundTasks,
+    prompt: str = None,
 ):
     logger.info("Create a post")
     # current_user: User = await get_current_user(await oauth2_scheme(request))  # when inject no longer need
@@ -45,6 +56,31 @@ async def create_post(
     query = post_table.insert().values(data)
     logger.debug(query)
     last_record_id = await database.execute(query)
+
+    if prompt:
+        # # TODO whether target of process can run kwargs
+        # p = Process(
+        #     target=arun_generate_and_add_to_post,
+        #     args=(
+        #         current_user.email,
+        #         last_record_id,
+        #         str(request.url_for("get_post_with_comments", post_id=last_record_id)),
+        #         # database, #cannot pass to Process
+        #         prompt,
+        #     ),
+        #     # kwargs={"func": print("Hello world")},
+        # )
+        # p.daemon = True
+        # p.start()
+        background_tasks.add_task(
+            generate_and_add_to_post,
+            current_user.email,
+            last_record_id,
+            str(request.url_for("get_post_with_comments", post_id=last_record_id)),
+            database,
+            prompt,
+        )
+
     return {**data, "id": last_record_id}
 
 

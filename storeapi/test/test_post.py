@@ -213,3 +213,21 @@ async def test_post_like(
         "post_id": created_post["id"],
         "user_id": created_post["user_id"],
     }.items() <= res.json().items()
+
+
+@pytest.mark.anyio
+async def test_create_post_with_prompt(
+    async_client: AsyncClient, logged_in_token: str, mock_generate_cute_creature_api
+):
+    response = await async_client.post(
+        "/post?prompt=A cat",
+        json={"body": "Test Post"},
+        headers={"Authorization": f"Bearer {logged_in_token}"},
+    )
+    assert response.status_code == 201
+    assert {
+        "id": 1,
+        "body": "Test Post",
+        "image_url": None,
+    }.items() <= response.json().items()
+    mock_generate_cute_creature_api.assert_called()

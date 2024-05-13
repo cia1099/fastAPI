@@ -49,6 +49,10 @@ async def call_upload_endpoint(async_client: AsyncClient, token: str, file: Path
     )
 
 
+"""===== 
+TODO: aiofiles_mock_open has problem in unknown
+that make logged_in_token error
+"""
 # @pytest.mark.anyio
 # async def test_upload_image(
 #     async_client: AsyncClient, logged_in_token: str, sample_image: Path
