@@ -1,3 +1,4 @@
+import asyncio
 from json import JSONDecodeError
 import logging
 from databases import Database
@@ -44,9 +45,44 @@ def get_email_name(email: str) -> str:
 
 
 async def send_user_registration_email(email: str, confirmation_url: str):
+    logger.debug("What is environment? %s" % config.ENV_STATE)
     if config.ENV_STATE == "dev":
-        with open("send_email.txt", "w") as f:
-            f.write("To verify multiprocess are available")
+        # with open("send_email.txt", "w") as f:
+        #     f.write("To verify multiprocess are available")
+        from storeapi.database import database, user_table
+        from storeapi.security import create_credentials_exception
+        import random
+        import asyncio
+
+        users = await database.fetch_all(user_table.select())
+
+        def extract_tail(mail: str) -> int | None:
+            tails = mail.split("@")[-1]
+            for t in tails:
+                if t.isdecimal():
+                    return int(t)
+            return None
+
+        indices = filter(
+            lambda x: x is not None, map(lambda user: extract_tail(user.email), users)
+        )
+        samples = list(filter(lambda x: x not in indices, [i for i in range(1, 10)]))
+        if len(samples) > 0:
+            s = str(random.sample(samples, 1)[0])
+            query = (
+                user_table.update()
+                .where(user_table.c.email == email)
+                .values(email=email + s)
+            )
+            # TODO: db will raise error that do not execution normally
+            record_id = await database.execute(query)
+            # current_user = next(user for user in users if user.email == email)
+            # if record_id != current_user.id:
+            #     raise create_credentials_exception("database not found current user")
+            # while record_id < 1:
+            #     await asyncio.sleep(0.5)
+            #     record_id = await database.execute(query)
+
     return await send_simple_message(
         email,
         "Successfully signed up",
