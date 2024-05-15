@@ -8,6 +8,8 @@ fastapi = "*"
 uvicorn = {extras = ["standard"], version = "*"}
 sqlalchemy = "*"
 databases = {extras = ["aiosqlite"], version = "*"}
+#databases = {extras = ["asyncpg"], version = "*"} #for postgresql
+#psycopg2-binary = "*" #for postgresql
 python-dotenv = "*"
 pydantic-settings = "*"
 rich = "*"

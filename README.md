@@ -3,6 +3,9 @@ FastAPI
 运行本地的服务器：
 ```shell
 uvicorn <project directory>.main:app --reload
+# deploy
+cd <project directory>
+uvicorn <project directory>.main:app --host 0.0.0.0 --port $PORT
 ```
 加入`--reload`参数可以让每次修改保存后，都会重新运行服务器。
 
@@ -176,6 +179,11 @@ def configure_logging() -> None:
 ```
 想要使用"rich.logging.RichHandler"就要安装`rich`套件。\
 "pythonjsonlogger.jsonlogger.JsonFormatter"要安装`python-json-logger`，让输出的日志可以给NoSQL的资料库系统来归档。
+
+DataBase
+---
+SQLite is a great database if you application is doing mostly reads, but it's maybe not so good for an async application if you're doing a lot of writes.\
+So for a REST API, SQLite is probably not the right choice in most scenarios, but PostgreSQL could be the right choice.
 
 Python Basic
 ---
