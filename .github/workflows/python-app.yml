@@ -28,7 +28,7 @@ jobs:
         python -m pip install --upgrade pip
         python -m pip install pipenv
         pipenv install && pipenv install --dev
-        pipenv requirements > requirements.txt && pipenv reqirements --dev > requirements-dev.txt
+        pipenv requirements > requirements.txt && pipenv requirements --dev > requirements-dev.txt
         if [ -f Pipfile ];then pip install -r requirements.txt; fi
         if [ -f Pipfile ];then pip install -r requirements-dev.txt; fi
     # - name: Lint with flake8
