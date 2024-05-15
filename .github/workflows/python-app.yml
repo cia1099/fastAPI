@@ -26,9 +26,10 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
+        python -m venv venv
+        source venv/bin/activate
         pip install pipenv
         if [ -f Pipfile ]; then pipenv install && pipenv install --dev; fi
-        pipenv shell
     # - name: Lint with flake8
     #   run: |
     #     # stop the build if there are Python syntax errors or undefined names
