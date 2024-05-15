@@ -67,6 +67,16 @@ Refs
 https://stackoverflow.com/questions/50598220/pipenv-how-to-force-virtualenv-directory \
 https://stackoverflow.com/questions/52540121/make-pipenv-create-the-virtualenv-in-the-same-folder
 
+发布上线前，可以使用指令生成`requirements.txt`。来方便在线上安装Python套件。以github的测试Action为例：
+```shell
+# 生成Pipfile.lock
+pipenv lock && pipenv lock --dev
+pipenv requirements > requirements.txt && pipenv requirements --dev > requirements-dev.txt
+# 线上安装
+python -m pip install -r requirements.txt
+python -m pip install -r requirements-dev.txt
+```
+refs: https://stackoverflow.com/questions/51845562/how-to-freeze-a-requirement-with-pipenv
 
 PyTest
 ---
