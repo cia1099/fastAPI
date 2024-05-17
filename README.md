@@ -5,7 +5,10 @@ FastAPI
 uvicorn <project directory>.main:app --reload
 # deploy
 cd <project directory>
-uvicorn <project directory>.main:app --host 0.0.0.0 --port $PORT
+uvicorn <project directory>.main:app --host 0.0.0.0 --port $PORT > /dev/null &
+# 查找占用PORT的PID
+lsof -i :$PORT
+kill -9 PID
 ```
 加入`--reload`参数可以让每次修改保存后，都会重新运行服务器。
 
