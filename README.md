@@ -11,6 +11,18 @@ lsof -i :$PORT
 kill -9 PID
 ```
 加入`--reload`参数可以让每次修改保存后，都会重新运行服务器。
+* ##### Remote by ssh
+用ssh传输档案可以用`rsync`和`spc`指令：
+```shell
+# push to remote
+rsync <file_name> <user_name>@<ip_address>:/path/to/remote
+rsync -r <directory> <user_name>@<ip_address>:/path/to/remote
+# pull from remote
+rsync <user_name>@<ip_address>:/path/to/remote/file <source_path>
+rsync -r <user_name>@<ip_address>:/path/to/remote/directory <source_path>
+```
+ref. https://linuxhandbook.com/transfer-files-ssh/
+
 
 FastAPI会自动解析JSON的field给Model，但要注意model的field只能多不能少，多的field会自动被忽略，千万注意在API声明的Model类型有没有满足返回的JSON能够被解析：
 ```py
