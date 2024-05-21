@@ -40,6 +40,7 @@ def create_access_token(
         )
     )
     jwt_data = {"sub": email, "exp": expire, "type": token_type}
+    # SECRET_KEY is arbitrary string for permanent saving as secrete as long string
     encoded_jwt = jwt.encode(
         jwt_data, key=config.SECRET_KEY, algorithm=config.ALGORITHM
     )

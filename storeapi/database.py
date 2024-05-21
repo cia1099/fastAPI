@@ -41,7 +41,9 @@ like_table = sqlalchemy.Table(
 )
 
 connect_args = {"check_same_thread": False} if "sqlite" in config.DATABASE_URL else {}
-engine = sqlalchemy.create_engine(config.DATABASE_URL, connect_args=connect_args)
+engine = sqlalchemy.create_engine(
+    config.DATABASE_URL, connect_args=connect_args, echo=True
+)
 
 db_args = {"min_size": 1, "max_size": 3} if "postgre" in config.DATABASE_URL else {}
 metadata.create_all(engine)

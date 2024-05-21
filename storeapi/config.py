@@ -32,10 +32,12 @@ class GlobalConfig(BaseConfig):
 
 class DevConfig(GlobalConfig):
     model_config = SettingsConfigDict(env_prefix="DEV_")
+    ENV_STATE: Optional[str] = "dev"
 
 
 class ProdConfig(GlobalConfig):
     model_config = SettingsConfigDict(env_prefix="PROD_")
+    ENV_STATE: Optional[str] = "prod"
 
 
 class TestConfig(GlobalConfig):
@@ -43,6 +45,7 @@ class TestConfig(GlobalConfig):
     DB_FORCE_ROLL_BACK: bool = True
 
     model_config = SettingsConfigDict(env_prefix="DEV_")
+    ENV_STATE: Optional[str] = "dev"
 
 
 @lru_cache()

@@ -60,6 +60,45 @@ async def get_all_posts(sorting: PostSorting = PostSorting.new):
 例如上述代码块，在`response_model`可以用`[UserPost]`和`[UserPostWithLikes]`在JSON字串里有"like" field，但`UserPost`少了仍然可以被解析。\
 传入Enum参数可以让fastAPI自动辨识为request的query，解义为Url就是http://localhost:8000/post?sorting=new
 
+
+DataBase
+---
+SQLite is a great database if you application is doing mostly reads, but it's maybe not so good for an async application if you're doing a lot of writes.\
+So for a REST API, SQLite is probably not the right choice in most scenarios, but PostgreSQL could be the right choice.
+
+* #### Sqlalchemey
+FastAPI使用ORM的方式，需要个别定义Sqlalchemy的model和http响应的schemas；http响应用的schema用`pydanic-setting`模块来定义，例如:
+```py
+#--- <project_name>/database/models.py
+import sqlalchemy
+
+metadata = sqlalchemy.MetaData()
+user_table = sqlalchemy.Table(
+    "users",
+    metadata,
+    sqlalchemy.Column("id", sqlalchemy.Integer, primary_key=True),
+    sqlalchemy.Column("email", sqlalchemy.String, unique=True),
+    sqlalchemy.Column("password", sqlalchemy.String),
+    sqlalchemy.Column("confirmed", sqlalchemy.Boolean, default=False),
+)
+#--- <project_name>/schemas/user.py
+from pydantic import BaseModel, ConfigDict
+
+class UserIn(BaseModel):
+    email: str
+    password: str
+
+class User(UserIn):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+
+```
+上面是用async的写法，Sqlalchemy搭配`databases`套件实现对资料库async的query，可以参考[ Async SQL (Relational) Databases](https://fastapi.tiangolo.com/how-to/async-sql-encode-databases/)。\
+如果是对资料库同步的query，参考[SQL (Relational) Databases](https://fastapi.tiangolo.com/tutorial/sql-databases/)。\
+可以发现Sqlalchemy需要另外写一个model和http响应的schema是相互独立的ORM。\
+如果是现有的资料库已经存在，可以使用[sqlacodegen](https://github.com/agronholm/sqlacodegen?tab=readme-ov-file)来对现有的资料库生成Sqlalchemy的models。
+
 ---
 Pipenv
 ---
@@ -145,9 +184,16 @@ async def test_get_all_posts_sorting(
 ): #....
 ```
 
+* #### pytest-coverage
+想要知道测试漏掉了哪些方法，可以安装`pytest-cov`模块。
+```shell
+# 待测试，大陆不能安转
+# pytest --cov=storeapi -k test_generate_and_add_to_post_success
+```
+
 Logging
 ---
-最基础的log设定方式，能够日志console和file，在专案目录下创建一个`loggin_conf.py`的设定档案：
+最基础的log设定方式，能够日志console和file，在专案目录下创建一个[loggin_conf.py](https://github.com/cia1099/fastAPI/blob/main/storeapi/logging_conf.py?plain=1#L31-L98)的设定档案：
 ```py
 import logging
 from logging.config import dictConfig
@@ -204,11 +250,6 @@ def configure_logging() -> None:
 ```
 想要使用"rich.logging.RichHandler"就要安装`rich`套件。\
 "pythonjsonlogger.jsonlogger.JsonFormatter"要安装`python-json-logger`，让输出的日志可以给NoSQL的资料库系统来归档。
-
-DataBase
----
-SQLite is a great database if you application is doing mostly reads, but it's maybe not so good for an async application if you're doing a lot of writes.\
-So for a REST API, SQLite is probably not the right choice in most scenarios, but PostgreSQL could be the right choice.
 
 Python Basic
 ---
