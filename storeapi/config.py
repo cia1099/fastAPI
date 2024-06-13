@@ -45,7 +45,6 @@ class TestConfig(GlobalConfig):
     DB_FORCE_ROLL_BACK: bool = True
 
     model_config = SettingsConfigDict(env_prefix="DEV_")
-    ENV_STATE: Optional[str] = "dev"
 
 
 @lru_cache()

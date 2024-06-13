@@ -1,7 +1,15 @@
 import logging, asyncio
 from multiprocessing import Process
 
-from fastapi import APIRouter, BackgroundTasks, HTTPException, status, Request
+from fastapi import (
+    APIRouter,
+    BackgroundTasks,
+    HTTPException,
+    status,
+    Request,
+    Cookie,
+    Response,
+)
 
 from storeapi.database import database, user_table
 from storeapi.models.user import UserIn, User
@@ -63,14 +71,32 @@ async def register(user: UserIn, background_tasks: BackgroundTasks, request: Req
     return {
         "detail": "User created. Please confirm your email.",
         # "confirmation_url": request.url_for("confirm_email", token=token),
+        "create_id": last_record_id,
     }
 
 
 @router.post("/login", status_code=status.HTTP_201_CREATED)
-async def login(user: UserIn):
+async def login(user: UserIn, resp: Response):
     user = await authenticate_user(user.email, user.password)
     access_token = create_access_token(user.email)
+    resp.set_cookie(key="cookie_token", value=access_token)
     return {"access_token": access_token, "token_type": "bearer"}
+
+
+@router.get("/login/cookies", status_code=status.HTTP_202_ACCEPTED)
+async def login_cookie(cookie_token: str | None = Cookie(None)):
+    if not cookie_token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Cookie not found"
+        )
+    get_subject_for_token_type(cookie_token, "access")
+    return {"access_token": cookie_token, "token_type": "bearer"}
+
+
+@router.get("/logout")
+async def logout(resp: Response):
+    resp.delete_cookie("cookie_token")
+    return {"detail": "You've logout"}
 
 
 @router.get("/confirm/{token}")

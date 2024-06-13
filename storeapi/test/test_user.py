@@ -32,6 +32,21 @@ async def test_login_user(confirmed_user: dict, async_client: AsyncClient):
 
 
 @pytest.mark.anyio
+async def test_fail_cookie_login(async_client: AsyncClient):
+    res = await async_client.get("/login/cookies")
+    assert res.status_code == 401
+    assert res.json()["detail"] == "Cookie not found"
+
+
+@pytest.mark.anyio
+async def test_cookie_login(confirmed_user: dict, async_client: AsyncClient):
+    _ = await async_client.post("/login", json=confirmed_user)
+    res = await async_client.get("/login/cookies")
+    assert res.status_code == 202
+    assert {"token_type": "bearer"}.items() <= res.json().items()
+
+
+@pytest.mark.anyio
 async def test_authenticate_user_not_found(async_client: AsyncClient):
     with pytest.raises(security.HTTPException):
         await security.authenticate_user("test@example.net", "1234")
