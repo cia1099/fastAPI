@@ -84,13 +84,18 @@ async def login(user: UserIn, resp: Response):
 
 
 @router.get("/login/cookies", status_code=status.HTTP_202_ACCEPTED)
-async def login_cookie(cookie_token: str | None = Cookie(None)):
+async def login_cookie(resp: Response, cookie_token: str | None = Cookie(None)):
     if not cookie_token:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Cookie not found"
         )
-    get_subject_for_token_type(cookie_token, "access")
-    return {"access_token": cookie_token, "token_type": "bearer"}
+    try:
+        get_subject_for_token_type(cookie_token, "access")
+        return {"access_token": cookie_token, "token_type": "bearer"}
+    except HTTPException as e:
+        resp.delete_cookie("cookie_token")
+        resp.status_code = e.status_code
+        return e
 
 
 @router.get("/logout")

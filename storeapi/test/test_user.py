@@ -124,6 +124,18 @@ async def test_confirm_email_token_expired(async_client: AsyncClient, mocker):
 
 
 @pytest.mark.anyio
+async def test_expired_token(async_client: AsyncClient, confirmed_user: dict, mocker):
+    mocker.patch("storeapi.security.access_token_expire_minutes", return_value=-1)
+    await async_client.post("/login", json=confirmed_user)
+    res = await async_client.get("/login/cookies")
+    assert res.status_code == 401
+    assert res.json()["detail"] == "Token has expired"
+    res2 = await async_client.get("/login/cookies")
+    assert res2.json()["detail"] == "Cookie not found"
+    assert res2.status_code == 401
+
+
+@pytest.mark.anyio
 async def test_invalid_confirm_user(async_client: AsyncClient):
     res = await async_client.get("/confirm/invalid_token")
     assert res.status_code == status.HTTP_401_UNAUTHORIZED
