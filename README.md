@@ -1,6 +1,6 @@
 FastAPI
 ---
-运行本地的服务器：
+* ##### 运行本地的服务器：
 ```shell
 uvicorn <project directory>.main:app --reload
 # deploy
@@ -12,7 +12,7 @@ kill -9 PID
 ```
 加入`--reload`参数可以让每次修改保存后，都会重新运行服务器。
 * ##### Remote by ssh
-用ssh传输档案可以用`rsync`和`spc`指令：
+用ssh传输档案可以用`rsync`和`scp`指令：
 ```shell
 # push to remote
 rsync <file_name> <user_name>@<ip_address>:/path/to/remote
@@ -21,7 +21,18 @@ rsync -r <directory> <user_name>@<ip_address>:/path/to/remote
 rsync <user_name>@<ip_address>:/path/to/remote/file <source_path>
 rsync -r <user_name>@<ip_address>:/path/to/remote/directory <source_path>
 ```
+如果`rsync`挂掉，可以用`scp`指令替换上面的`rsync`。
 ref. https://linuxhandbook.com/transfer-files-ssh/
+
+* ##### 启动http伺服器
+```shell
+python3 -m http.server -d $HOME/web 1102
+```
+This command calls the http.server module to start a web server on port __1102__, in the directory $HOME/web specified using the -d argument. Now, we can visit http://localhost:1102 to see that “Hello World” is displayed. If we don’t have an index.html file in our folder, this module shows a list of files and folders in the folder by default.
+
+refs.
+1. https://www.baeldung.com/linux/start-web-server-folder
+2. https://askubuntu.com/questions/377389/how-to-easily-start-a-webserver-in-any-folder
 
 
 FastAPI会自动解析JSON的field给Model，但要注意model的field只能多不能少，多的field会自动被忽略，千万注意在API声明的Model类型有没有满足返回的JSON能够被解析：
@@ -106,6 +117,8 @@ Pipenv
 Module pipenv是一个套件管理包，可以取代requirement.txt\
 Pipfile可以编辑里面的套件，有这个文件以后用`pipenv install`就能全部安装好到venv，连python的版本都能在这文件指定。要启动pipenv建立的venv，只需输入`pipenv shell`就能进入该venv；离开就打`exit`，操作更直观。
 要安装dev-package只要输入`pipenv install -—dev <package_name>`，就能将套件安装在dev-package。以后在别的设备开发，只要输入pipenv install —dev就会将Pipfile的dev-package安装到venv环境。
+* 安装特殊的包名或版本，可以加上“”来指定包的部分安装e.g.`pipenv install "databases[aiosqlite]==0.9.0"`
+
 使用`pipenv uninstall <package_name>`可以卸载，并将Pipfile的package除去。\
 最好在venv的环境下安装pipenv，这样pipenv安装的套件都能在这个venv的文件夹安装套件：
 
