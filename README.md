@@ -34,6 +34,12 @@ refs.
 1. https://www.baeldung.com/linux/start-web-server-folder
 2. https://askubuntu.com/questions/377389/how-to-easily-start-a-webserver-in-any-folder
 
+* ##### Jwt
+生成secret key
+```ssh
+openssl rand -hex 32
+```
+
 
 FastAPI会自动解析JSON的field给Model，但要注意model的field只能多不能少，多的field会自动被忽略，千万注意在API声明的Model类型有没有满足返回的JSON能够被解析：
 ```py
