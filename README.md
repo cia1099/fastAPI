@@ -456,7 +456,56 @@ Task results = {1}
 elapsed time = 1.0031888484954834
 '''
 ```
-其中done是完成的任务，而pendding是未完成的任务，可以再用`asyncio.wait(pendding)`将剩余的任务完成。
+其中done是完成的任务，而pendding是未完成的任务，可以再用`asyncio.wait(pendding)`将剩余的任务完成。\
+其实用`asyncio.gather`就能够返回`done`。
+
+* ##### Compare Asynchronous and Threads
+1. 在任务简单，IO操作多的任务，coroutine的效率比thread好
+2. 任务复杂，回圈数量密集的任务，thread效率比coroutine佳
+```py
+import asyncio, time
+import concurrent.futures
+from timeit import timeit # 方便计算执行时间
+
+def sync_hello(n):
+    # print("Before sleep %d" % n)
+    # time.sleep(n) # 1.IO等待时间长
+    # print(f"sync({n}) hello")
+    for _ in range(5000000): # 2.CPU运算密集
+        pass
+
+
+if __name__ == "__main__":
+    tic = time.time()
+    with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
+        futures = [executor.submit(sync_hello, t) for t in range(1, 5)]
+        for _ in concurrent.futures.as_completed(futures):
+            pass
+    th_time = time.time() - tic
+    tic = time.time()
+    with concurrent.futures.ProcessPoolExecutor(max_workers=5) as executor:
+        futures = [executor.submit(sync_hello, t) for t in range(1, 5)]
+        for _ in concurrent.futures.as_completed(futures):
+            pass
+    ps_time = time.time() - tic
+    print(f"coroutine_time = {th_time}, thread_time = {ps_time}")
+    winner = "thread" if ps_time < th_time else "coroutine"
+    rate = max(ps_time, th_time) / min(th_time, ps_time)
+    print(winner + " is faster" + f" {rate:.2f} rate")
+```
+在上述例子在for回圈大于5000000后的计算密集，thread的效率才开始高于coroutine。\
+而任何IO的操作在parallel执行下，效率永远低于concurrent的执行。
+```sh
+# case 1 output
+coroutine_time = 4.00658106803894, thread_time = 4.1249918937683105
+coroutine is faster 1.03 rate
+# case 2 output
+coroutine_time = 0.21023917198181152, thread_time = 0.16778898239135742
+thread is faster 1.25 rate
+```
+**refs.**:\
+[cache (usage of timeit)](https://www.kdnuggets.com/how-to-speed-up-python-code-with-caching)
+[concurrent.future](https://python-parallel-programmning-cookbook.readthedocs.io/zh-cn/latest/chapter4/02_Using_the_concurrent.futures_Python_modules.html#id1)
 
 * ##### Combining Async and Multiprocessing
 可以定义一个方法用来执行`asyncio.run`来给`Process`。注意使用`multiprocessing`要声明`if __name__=='__main__:'`的作用域下运行：
@@ -471,6 +520,7 @@ if __name__ == "__main__":
     tic = time.time()
     ps = [Process(target=arun) for _ in range(4)]
     for p in ps:
+        # p.daemon = True  # detached ref.https://stackoverflow.com/questions/49123439/python-how-to-run-process-in-detached-mode
         p.start()
     for p in ps:
         p.join()
