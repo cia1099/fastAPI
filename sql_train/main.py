@@ -55,19 +55,11 @@ if __name__ == "__main__":
     # print(select_post_and_likes)
 
     engine = create_engine(DB_URL, echo=False)
-    # Base.metadata.drop_all(engine)
     Base.metadata.create_all(engine)
     # create_mock(engine)
     stmt = sqlalchemy.select(User).where(User.name == "Shit Man")
     print("What type is %s\n%s" % (type("%s" % stmt), stmt))
     with engine.connect() as cursor:
-        # stmt = sqlalchemy.insert(User).values(name="Fuck Man")
-        # try:
-        #     cursor.execute(stmt)
-        #     cursor.commit()
-        # except Exception as e:
-        #     print("error incurred:", e)
-        #     cursor.rollback()
         user = cursor.execute(stmt).one()
         print(type(user))
         print(f"'{user.name}' whose id is {user.id}")

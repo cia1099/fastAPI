@@ -82,3 +82,16 @@ with Session(bind=engine, future=True) as session:
     print("Session query: %s" % [post.id for post in user.posts])
 ```
 可以看到用原始Table操作返回的类型是`<class 'sqlalchemy.engine.row.Row'>`，而用Session操作返回`<schemas.User object at 0x10416ee00>`我们定义的schemas.User，是有关联的，field含有posts可以直接遍历。
+* Handle exception
+注意在对database写入操作的时候，要做异常捕获，如果发生异常可以将database回溯：
+```py
+with engine.connect() as cursor:
+    stmt = sqlalchemy.insert(User).values(name="Fuck Man")
+    try:
+        cursor.execute(stmt)
+        cursor.commit()
+    except Exception as e:
+        print("error incurred:", e)
+        cursor.rollback()
+```
+做写入都要`commit()`之后才会写入disk。
