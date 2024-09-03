@@ -5,9 +5,9 @@ name = "pypi"
 
 [packages]
 fastapi = "*"
-uvicorn = {extras = ["standard"], version = "*"}
+uvicorn = {extras = ["standard"] }
 sqlalchemy = "*"
-databases = {extras = ["aiosqlite"], version = "*"}
+databases = {extras = ["aiosqlite"] }
 #databases = {extras = ["asyncpg"], version = "*"} #for postgresql
 #psycopg2-binary = "*" #for postgresql
 python-dotenv = "*"
@@ -17,7 +17,7 @@ asgi-correlation-id = "*"
 python-json-logger = "*"
 python-jose = "*"
 python-multipart = "*"
-passlib = {extras = ["bcrypt"], version = "*"}
+passlib = {extras = ["bcrypt"] }
 httpx = "*"
 aiofiles = "*"
 b2sdk = "*"
@@ -29,6 +29,8 @@ isort = "*"
 pytest = "*"
 pytest-mock = "*"
 pyfakefs = "*"
+openalchemy = "*"
+faker = "*"
 
 [requires]
 python_version = "3.10"
