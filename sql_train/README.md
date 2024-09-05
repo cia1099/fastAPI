@@ -3,7 +3,7 @@
 ## Introduction
 Sqlalchemy是一个非常强大的工具，可以用Pythonic的写法，来生成SQL表达语句。只要定义好Sqlalchemy的schema，就能够依照这个schema里table的field，来生成SQL语句，可以依据现有的database来写schema，这样就能对这个database做SQL CRUD各种操作。\
 此外，Sqlalchemy还有自定义的`relationship`方法，可以让table之间的filed有关联性，但只有在`Session`的获取下才能补货这关联，不会影响database内table存储的内容。\
-我们还可以用[sqlacodegen](https://github.com/agronholm/sqlacodegen?tab=readme-ov-file)来对现有的database来自动生成schema。
+我们还可以用[sqlacodegen_v2](https://github.com/maacck/sqlacodegen_v2)来对现有的database来自动生成schema。
 
 ## Example
 [schema](https://github.com/cia1099/fastAPI/blob/main/sql_train/schemas.py) 我们有这样的资料结构，其中用`Column`的field才是database里存储的数据，`relationship("Class Name", back_populates="Table Name")`是Sqlalchemy为我们做的关联field，只有用`Session`才能有效，实际database并没有存这样的column在table里。
@@ -26,7 +26,7 @@ Base.metadata.create_all(engine) #建立schema中有宣告__tablename__的名称
 基本上建立table都不会有问题，也就是说`create_all(engine)`方法不会有影响，建立和清除table都是根据是否有这个table名称在`.db`里来去执行。\
 只要有继承[Base](https://github.com/cia1099/fastAPI/blob/main/sql_train/schemas.py?plain=1#L14-L15)的这个Class子类，都会被检查是否有这个table名称在`.db`。
 
-* Generate SQL expression
+* Generate SQL expression\
 本质上`sqlalchemy`提供的方法就是转化SQL语句，可以用打印的方式印出SQL的表达式：
 ```py
 stmt = sqlalchemy.select(User).where(User.name == "Shit Man")
@@ -62,7 +62,7 @@ user = cursor.execute(q_query, ('Shit Man',)).one()
 cursor.close()
 conn.close()
 ```
-* Execute SQL
+* Execute SQL\
 Sqlalchemy提供了两种执行方式，一种是原始的数据操作，另一种是借由`Session`来辅助补充Sqlalchemy自定义的field方法内容。
 1. 原始Table操作
 ```py
@@ -82,7 +82,7 @@ with Session(bind=engine, future=True) as session:
     print("Session query: %s" % [post.id for post in user.posts])
 ```
 可以看到用原始Table操作返回的类型是`<class 'sqlalchemy.engine.row.Row'>`，而用Session操作返回`<schemas.User object at 0x10416ee00>`我们定义的schemas.User，是有关联的，field含有posts可以直接遍历。
-* Handle exception
+* Handle exception\
 注意在对database写入操作的时候，要做异常捕获，如果发生异常可以将database回溯：
 ```py
 with engine.connect() as cursor:
@@ -95,3 +95,5 @@ with engine.connect() as cursor:
         cursor.rollback()
 ```
 做写入都要`commit()`之后才会写入disk。
+
+## Advance Expression

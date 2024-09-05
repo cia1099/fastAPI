@@ -31,6 +31,7 @@ pytest-mock = "*"
 pyfakefs = "*"
 openalchemy = "*"
 faker = "*"
+sqlacodegen-v2 = "*"
 
 [requires]
 python_version = "3.10"

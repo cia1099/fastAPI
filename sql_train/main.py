@@ -53,6 +53,10 @@ if __name__ == "__main__":
     # sys.path.append(str(Path(__file__).parent.parent))
     # from storeapi.routers.posts import select_post_and_likes
     # print(select_post_and_likes)
+    '''
+    SELECT posts.id, posts.body, posts.user_id, posts.image_url, count(likes.id) AS likes 
+FROM posts LEFT OUTER JOIN likes ON posts.id = likes.post_id GROUP BY posts.id
+    '''
 
     engine = create_engine(DB_URL, echo=False)
     Base.metadata.create_all(engine)
