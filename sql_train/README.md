@@ -370,5 +370,14 @@ WHERE post_likes."like" >= (SELECT max(post_likes."like") - :max_1 AS anon_1
 FROM post_likes)
 ```
 这个操作就暂存了`post_likes_cte`这个表格，而要想用表格的field可以加上`.c`这个调用在Sqlalchemy。在做function的请求最好加上`scalar_subquery()`可以防止警告，在`sql.select()`套嵌内的`sql.select()`加上`subquery()`可以变成table来呼叫field。\
-https://docs.sqlalchemy.org/en/20/tutorial/data_select.html#common-table-expressions-ctes\
+https://docs.sqlalchemy.org/en/20/tutorial/data_select.html#common-table-expressions-ctes
+
 [advance.py](https://github.com/cia1099/fastAPI/blob/main/sql_train/advance.py)
+
+#### 5. UNION & UNION_ALL
+这两个方法是将两个`subquery`合并row的数量成一个新table，前提是这两个`subquery`要有相同的column才可以合并，`union_all`会包含重复的row,`union`则是联集。\
+https://docs.sqlalchemy.org/en/20/tutorial/data_select.html#union-union-all-and-other-set-operations
+
+#### 6. Stored Procedure and Trigger
+Sqlalchemy并没有支持这些SQL特性，需要自己用SQL语句来加入到资料库里。\
+https://docs.sqlalchemy.org/en/20/core/connections.html#working-with-the-dbapi-cursor-directly
