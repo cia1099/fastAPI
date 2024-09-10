@@ -1,4 +1,4 @@
-from datetime import datetime as DateTime
+from datetime import datetime as DateTime, timezone
 from sqlalchemy import (
     UniqueConstraint,
     Column,
@@ -26,13 +26,14 @@ class User(Base):
 class Post(Base):
     __tablename__ = "posts"
     __table_args__ = (
-        Index("all_posts_user_id", "user_id"),
+        # Index("all_posts_user_id", "user_id"),
         # UniqueConstraint("user_id", "id", name="user_unique"),
+        Index("UX_date_time", "create_at"),
     )
     id = Column(Integer, primary_key=True)
     body = Column(String)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    create_at = Column(TIMESTAMP, default=DateTime.now())
+    create_at = Column(TIMESTAMP, default=DateTime.now(tz=timezone.utc))
 
     author = relationship("User", back_populates="posts")
 

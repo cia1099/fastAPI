@@ -94,6 +94,232 @@ with engine.connect() as cursor:
         print("error incurred:", e)
         cursor.rollback()
 ```
-做写入都要`commit()`之后才会写入disk。
+做写入都要`commit()`之后才会写入disk。Sqlalchemy在第一次执行`execute()`的时候就会预设SQL`BEGIN TRANSACTION`\
+https://docs.sqlalchemy.org/en/20/core/connections.html#using-transactions
 
 ## Advance Expression
+#### 1. 查找特定的column
+```py
+stmt = sql.select(User.id).where(User.name == "Shit Man")
+```
+```sql
+SELECT users.id 
+FROM users 
+WHERE users.name = :name_1
+```
+#### 2. JOIN操作
+JOIN操作，就是将两张table的column做选择，这两张table之间最好要有关联的field，这样join的column才不会合并成所有的column组合。选定的两张table都是以左表的row数据量来做返回。\
+JOIN又分为inner和outer，预设都是inner。
+#### [Example](https://github.com/cia1099/fastAPI/blob/main/sql_train/example.py)
+
+<table>
+  <tr>
+    <td>
+
+#### Customer
+<table border="1">
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Name</th>
+      <th>Country</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>1</td>
+      <td>Alex</td>
+      <td>USA</td>
+    </tr>
+    <tr>
+      <td>2</td>
+      <td>Bob</td>
+      <td>UK</td>
+    </tr>
+    <tr>
+      <td>3</td>
+      <td>Chris</td>
+      <td>France</td>
+    </tr>
+    <tr>
+      <td>4</td>
+      <td>Dave</td>
+      <td>Canada</td>
+    </tr>
+  </tbody>
+</table>
+</td>
+<td>
+
+#### Order
+<table border="1">
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>CustomerID</th>
+      <th>Amount</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>1</td>
+      <td>1</td>
+      <td>100</td>
+    </tr>
+    <tr>
+      <td>2</td>
+      <td>2</td>
+      <td>200</td>
+    </tr>
+    <tr>
+      <td>3</td>
+      <td>5</td>
+      <td>300</td>
+    </tr>
+    <tr>
+      <td>4</td>
+      <td>3</td>
+      <td>400</td>
+    </tr>
+  </tbody>
+</table>
+
+</td>
+</tr>
+</table>
+
+* ##### INNER JOIN
+只有满足左右两表的条件才做返回，实际数据量可能会少于左表。
+```sql
+SELECT orders.id, customers.name, orders.amount 
+FROM orders JOIN customers ON orders.customer_id = customers.id
+```
+Result:
+<table border="1">
+    <th>OrderID</th>
+    <th>CustomerName</th>
+    <th>Amount</th>
+    <tr>
+      <td>1</td>
+      <td>Alex</td>
+      <td>100</td>
+    </tr>
+    <tr>
+      <td>2</td>
+      <td>Bob</td>
+      <td>200</td>
+    </tr>
+    <tr>
+      <td>4</td>
+      <td>Chris</td>
+      <td>400</td>
+    </tr>
+</table>
+
+* #### OUTER JOIN
+outer是一定要返回左表的数据量，当满足右表条件就返回，但不满足右表条件的数据会补充为NULL。
+```sql
+SELECT customers.id, customers.name, orders.amount 
+FROM customers LEFT OUTER JOIN orders ON customers.id = orders.customer_id
+```
+Result:
+<table border="1">
+    <th>CustomerID</th>
+    <th>CustomerName</th>
+    <th>Amount</th>
+    <tr>
+      <td>1</td>
+      <td>Alex</td>
+      <td>100</td>
+    </tr>
+    <tr>
+      <td>2</td>
+      <td>Bob</td>
+      <td>200</td>
+    </tr>
+    <tr>
+      <td>3</td>
+      <td>Chris</td>
+      <td>400</td>
+    </tr>
+    <tr>
+      <td>4</td>
+      <td>Dave</td>
+      <td>NULL</td>
+    </tr>
+</table>
+
+```sql
+SELECT orders.id, customers.name, orders.amount 
+FROM customers LEFT OUTER JOIN orders ON orders.customer_id = customers.id
+```
+Result:
+<table border="1">
+    <th>OrderID</th>
+    <th>CustomerName</th>
+    <th>Amount</th>
+    <tr>
+      <td>1</td>
+      <td>Alex</td>
+      <td>100</td>
+    </tr>
+    <tr>
+      <td>2</td>
+      <td>Bob</td>
+      <td>200</td>
+    </tr>
+    <tr>
+      <td>4</td>
+      <td>Chris</td>
+      <td>400</td>
+    </tr>
+    <tr>
+      <td>NULL</td>
+      <td>Dave</td>
+      <td>NULL</td>
+    </tr>
+</table>
+
+* #### FULL JOIN
+full join是只要满足左右两表其中一个，就会返回，返回数据量是两张表的联集。
+```sql
+SELECT customers.id, orders.id AS id_1, customers.name, orders.amount 
+FROM customers FULL OUTER JOIN orders ON orders.customer_id = customers.id
+```
+Result:
+<table border="1">
+    <th>CustomerID</th>
+    <th>OrderID</th>
+    <th>CustomerName</th>
+    <th>Amount</th>
+    <tr>
+      <td>1</td>
+      <td>1</td>
+      <td>Alex</td>
+      <td>100</td>
+    </tr>
+    <tr>
+      <td>2</td>
+      <td>2</td>
+      <td>Bob</td>
+      <td>200</td>
+    </tr>
+    <tr>
+      <td>3</td>
+      <td>4</td>
+      <td>Chris</td>
+      <td>400</td>
+    </tr>
+    <tr>
+      <td>4</td>
+      <td>NULL</td>
+      <td>Dave</td>
+      <td>NULL</td>
+    </tr>
+    <tr>
+      <td>NULL</td>
+      <td>3</td>
+      <td>NULL</td>
+      <td>300</td>
+    </tr>
+</table>

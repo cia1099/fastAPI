@@ -1,5 +1,6 @@
 from pathlib import Path
 import sys, random
+from datetime import timezone
 
 from schemas import *
 from sqlalchemy import create_engine
@@ -25,7 +26,7 @@ def create_mock(engine: sqlalchemy.engine.Engine):
         ]
         session.add_all(random.sample(users, len(users)))
         session.add_all(
-            Post(body=faker.text(), user_id=faker.random_int(1, n_user))
+            Post(body=faker.text(), user_id=faker.random_int(1, n_user), create_at=faker.date_time(tzinfo=timezone.utc))
             for _ in range(n_post)
         )
         likes = [set() for _ in range(n_post)]
