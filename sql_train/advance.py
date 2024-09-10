@@ -81,7 +81,7 @@ def count_post_like(cursor: sql.engine.Connection):
 def length_of_table(cursor: sql.engine.Connection):
     stmt = sql.select(
         sql.select(sql.func.count("*")).select_from(User).label("n_user"),
-        sql.select(sql.func.count(Post.id)).label("n_post"),
+        sql.select(sql.func.count(Post.id)).scalar_subquery().label("n_post"),
         sql.select(sql.func.count(Like.id)).label("n_like"),
     )
     print(stmt)
@@ -131,10 +131,10 @@ def most_like_post(cursor: sql.engine.Connection):
 
 
 if __name__ == "__main__":
-    search_User_id()
+    # search_User_id()
     # order_user_name()
     # find_user_likes()
     # count_post_like()
     # length_of_table()
     # find_who_not_post()
-    # most_like_post()
+    most_like_post()

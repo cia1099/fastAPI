@@ -98,16 +98,7 @@ with engine.connect() as cursor:
 https://docs.sqlalchemy.org/en/20/core/connections.html#using-transactions
 
 ## Advance Expression
-#### 1. 查找特定的column
-```py
-stmt = sql.select(User.id).where(User.name == "Shit Man")
-```
-```sql
-SELECT users.id 
-FROM users 
-WHERE users.name = :name_1
-```
-#### 2. JOIN操作
+#### 1. JOIN操作
 JOIN操作，就是将两张table的column做选择，这两张table之间最好要有关联的field，这样join的column才不会合并成所有的column组合。选定的两张table都是以左表的row数据量来做返回。\
 JOIN又分为inner和outer，预设都是inner。
 #### [Example](https://github.com/cia1099/fastAPI/blob/main/sql_train/example.py)
@@ -189,7 +180,7 @@ JOIN又分为inner和outer，预设都是inner。
 </table>
 
 * ##### INNER JOIN
-只有满足左右两表的条件才做返回，实际数据量可能会少于左表。
+只有满足左右两表的条件才做返回，数据量可能会少于左表，实际数量就是两张表的交集。
 ```sql
 SELECT orders.id, customers.name, orders.amount 
 FROM orders JOIN customers ON orders.customer_id = customers.id
@@ -323,3 +314,61 @@ Result:
       <td>300</td>
     </tr>
 </table>
+
+#### 2. Aggregate Function
+用来计算返回资料row数量的统计数据
+```py
+stmt = (
+        sql.select(Post.id, Post.create_at, sql.func.count(Like.id).label("like"))
+        .select_from(Post)
+        .outerjoin(Like, Post.id == Like.post_id)
+        .group_by(Post.id)
+        # .having(sql.func.count(Like.id) > 0)
+        # .order_by(sql.desc("like"))
+        .order_by(sql.desc(Post.create_at))
+    )
+```
+这里计算了某个Post.id总共有多少个Like，新增的column可以用label来方便后面调用。在SQL语句里，只有`HAVING`里面才能用function，`WHERE`只能调用field，但是`HAVING`里不能调用field；想要在`WHERE`里面使用function，可以搭配subquery来完成。
+#### 3. Subquery
+Subquery是一个独立的请求，可以结合多个subquery到一个query做取样
+```py
+stmt = sql.select(
+        sql.select(sql.func.count("*")).select_from(User).label("n_user"),
+        sql.select(sql.func.count(Post.id)).scalar_subquery().label("n_post"),
+        sql.select(sql.func.count(Like.id)).label("n_like"),
+    )
+```
+这个请求计算了资料库里的table分别有多少个row数据。\
+https://docs.sqlalchemy.org/en/20/tutorial/data_select.html#subqueries-and-ctes
+#### 4. Common Table Expression
+CTE是将subquery的数据暂存起来，为一个暂时的table，方便后面在用这个数据来join操作
+```py
+post_like_cte = (
+        sql.select(Post.id, sql.func.count(Like.id).label("like"))
+        .select_from(Post)
+        .outerjoin(Like, Like.post_id == Post.id)
+        .group_by(Post.id)
+        .cte("post_likes")
+    )
+subq = sql.select(sql.func.max(post_like_cte.c.like) - 1).scalar_subquery()
+stmt = (
+    sql.select(post_like_cte.c.like, Post.id)
+    .join(Post, Post.id == post_like_cte.c.id)
+    .where(post_like_cte.c.like >= subq)
+    # .having(sql.func.max(post_like_cte.c.like) >= subq)
+    # .group_by(post_like_cte.c.id)
+)
+avg_qu = sql.select(sql.func.avg(stmt.subquery().c.like))
+```
+```sql
+WITH post_likes AS 
+(SELECT posts.id AS id, count(likes.id) AS "like" 
+FROM posts LEFT OUTER JOIN likes ON likes.post_id = posts.id GROUP BY posts.id)
+ SELECT post_likes."like", posts.id 
+FROM post_likes JOIN posts ON posts.id = post_likes.id 
+WHERE post_likes."like" >= (SELECT max(post_likes."like") - :max_1 AS anon_1 
+FROM post_likes)
+```
+这个操作就暂存了`post_likes_cte`这个表格，而要想用表格的field可以加上`.c`这个调用在Sqlalchemy。在做function的请求最好加上`scalar_subquery()`可以防止警告，在`sql.select()`套嵌内的`sql.select()`加上`subquery()`可以变成table来呼叫field。\
+https://docs.sqlalchemy.org/en/20/tutorial/data_select.html#common-table-expressions-ctes\
+[advance.py](https://github.com/cia1099/fastAPI/blob/main/sql_train/advance.py)
