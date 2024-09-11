@@ -131,7 +131,7 @@ stmt = (
     )
 # [(27, 'Shit Man')]
 ```
-注意想用pathetic的样式，记得要将每个条件用()包裹起来。\
+注意想用pythonic的样式，记得要将每个条件用()包裹起来。\
 https://docs.sqlalchemy.org/en/20/core/sqlelement.html#sqlalchemy.sql.expression.or_
 #### 2. JOIN操作
 JOIN操作，就是将两张table的column做选择，这两张table之间最好要有关联的field，这样join的column才不会合并成所有的column组合。选定的两张table都是以左表的row数据量来做返回。\
