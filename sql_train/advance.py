@@ -16,11 +16,12 @@ def bind_engine(func: callable):
 
 @bind_engine
 def search_User_id(cursor: sql.engine.Connection):
-    stmt = sql.select(User.id).where(User.name == "Shit Man")
+    stmt = sql.select("*").select_from(User).where(User.name.like("% man"))
     print(stmt)
     res = cursor.execute(stmt)
     print(type(res))
-    print("Shit Man is at id %d" % res.first().id)
+    # print("Shit Man is at id %d" % res.first().id)
+    print(res.fetchall())
 
 
 @bind_engine
@@ -53,13 +54,14 @@ def find_user_likes(cursor: sql.engine.Connection):
 @bind_engine
 def count_post_like(cursor: sql.engine.Connection):
     stmt = (
-        sql.select(Post.id, Post.create_at, sql.func.count(Like.id).label("like"))
+        # sql.select(Post.id, Post.create_at, sql.func.count(Like.id).label("like"))
+        sql.select(Post.id, sql.func.count(Like.id).label("like"))
         .select_from(Post)
         .outerjoin(Like, Post.id == Like.post_id)
         .group_by(Post.id)
-        # .having(sql.func.count(Like.id) > 0)
-        # .order_by(sql.desc("like"))
-        .order_by(sql.desc(Post.create_at))
+        .having(sql.func.count(Like.id) > 0)
+        .order_by(sql.asc("like"))
+        # .order_by(sql.desc(Post.create_at))
     )
     """
     SELECT posts.id, count(likes.id) AS "like" 

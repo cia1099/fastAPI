@@ -98,7 +98,42 @@ with engine.connect() as cursor:
 https://docs.sqlalchemy.org/en/20/core/connections.html#using-transactions
 
 ## Advance Expression
-#### 1. JOIN操作
+#### 1. Regex Search & IN operator
+```py
+stmt = sql.select("*").select_from(User).where(User.name.like("%man"))
+# [(19, 'James Roman'), (27, 'Shit Man'), (88, 'Denise Goodman')]
+stmt = sql.select("*").select_from(User).where(User.name.like("% man"))
+stmt = sql.select("*").select_from(User).where(User.name.in_(["Shit Man"]))
+# [(27, 'Shit Man')]
+stmt = sql.select("*").select_from(User).where(User.name.like("man%"))
+# [(5, 'Manuel Benson')]
+```
+```sql
+SELECT * 
+FROM users 
+WHERE users.name LIKE :name_1
+```
+* __%__: This represents zero, one, or multiple characters. For example, if you are looking for any words that contain the letters "cat" in a column, you can use the pattern %cat%. This will return any records that have "cat" anywhere in the column.
+* **_**: This represents a single character. For example, if you are looking for any words that have "at" as their second and third letters in a column, you can use the pattern _%at%. This will return any records that have any character as their first letter, followed by "at" as their second and third letters.
+
+* ##### AND, OR operator
+```py
+stmt = (
+        sql.select("*")
+        .select_from(User)
+        .where((sql.func.length(User.name) == 8) | (User.id == 1))
+    )
+# [(1, 'Melissa Hebert'), (27, 'Shit Man'), (34, 'Roy Wall'), (81, 'Ryan Orr')]
+stmt = (
+        sql.select("*")
+        .select_from(User)
+        .where((sql.func.length(User.name) == 8) & (User.id == 27))
+    )
+# [(27, 'Shit Man')]
+```
+注意想用pathetic的样式，记得要将每个条件用()包裹起来。\
+https://docs.sqlalchemy.org/en/20/core/sqlelement.html#sqlalchemy.sql.expression.or_
+#### 2. JOIN操作
 JOIN操作，就是将两张table的column做选择，这两张table之间最好要有关联的field，这样join的column才不会合并成所有的column组合。选定的两张table都是以左表的row数据量来做返回。\
 JOIN又分为inner和outer，预设都是inner。
 #### [Example](https://github.com/cia1099/fastAPI/blob/main/sql_train/example.py)
@@ -315,7 +350,7 @@ Result:
     </tr>
 </table>
 
-#### 2. Aggregate Function
+#### 3. Aggregate Function
 用来计算返回资料row数量的统计数据
 ```py
 stmt = (
@@ -323,13 +358,13 @@ stmt = (
         .select_from(Post)
         .outerjoin(Like, Post.id == Like.post_id)
         .group_by(Post.id)
-        # .having(sql.func.count(Like.id) > 0)
-        # .order_by(sql.desc("like"))
-        .order_by(sql.desc(Post.create_at))
+        .having(sql.func.count(Like.id) > 0)
+        .order_by(sql.asc("like"))
+        # .order_by(sql.desc(Post.create_at))
     )
 ```
-这里计算了某个Post.id总共有多少个Like，新增的column可以用label来方便后面调用。在SQL语句里，只有`HAVING`里面才能用function，`WHERE`只能调用field，但是`HAVING`里不能调用field；想要在`WHERE`里面使用function，可以搭配subquery来完成。
-#### 3. Subquery
+这里计算了某个Post.id总共有多少个Like，新增的column可以用label来方便后面调用。在SQL语句里，只有`HAVING`里面才能用aggregate function，`WHERE`只能调用field或是只对field运算的function(e.g. LENGTH)，反之`HAVING`里不能调用field；想要在`WHERE`里面使用aggregate function，可以利用subquery来完成。
+#### 4. Subquery
 Subquery是一个独立的请求，可以结合多个subquery到一个query做取样
 ```py
 stmt = sql.select(
@@ -340,7 +375,7 @@ stmt = sql.select(
 ```
 这个请求计算了资料库里的table分别有多少个row数据。\
 https://docs.sqlalchemy.org/en/20/tutorial/data_select.html#subqueries-and-ctes
-#### 4. Common Table Expression
+#### 5. Common Table Expression
 CTE是将subquery的数据暂存起来，为一个暂时的table，方便后面在用这个数据来join操作
 ```py
 post_like_cte = (
@@ -374,10 +409,10 @@ https://docs.sqlalchemy.org/en/20/tutorial/data_select.html#common-table-express
 
 [advance.py](https://github.com/cia1099/fastAPI/blob/main/sql_train/advance.py)
 
-#### 5. UNION & UNION_ALL
+#### 6. UNION & UNION_ALL
 这两个方法是将两个`subquery`合并row的数量成一个新table，前提是这两个`subquery`要有相同的column才可以合并，`union_all`会包含重复的row,`union`则是联集。\
 https://docs.sqlalchemy.org/en/20/tutorial/data_select.html#union-union-all-and-other-set-operations
 
-#### 6. Stored Procedure and Trigger
-Sqlalchemy并没有支持这些SQL特性，需要自己用SQL语句来加入到资料库里。\
+#### 7. Stored Procedure and Trigger
+Sqlalchemy并没有实现这些SQL特性，需要自己用SQL语句来加入到资料库里。\
 https://docs.sqlalchemy.org/en/20/core/connections.html#working-with-the-dbapi-cursor-directly
