@@ -75,7 +75,7 @@ async def send_user_registration_email(email: str, confirmation_url: str):
                 .values(email=email + s)
             )
             # TODO: db will raise error that do not execution normally
-            record_id = await database.execute(query)
+            # record_id = await database.execute(query)
             # current_user = next(user for user in users if user.email == email)
             # if record_id != current_user.id:
             #     raise create_credentials_exception("database not found current user")

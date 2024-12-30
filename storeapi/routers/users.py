@@ -43,7 +43,9 @@ async def register(user: UserIn, background_tasks: BackgroundTasks, request: Req
     hashed_password = get_password_hash(user.password)
     user.password = hashed_password
     data = user.model_dump()
-    query = user_table.insert().values(email=user.email, password=hashed_password)
+    query = user_table.insert().values(
+        email=user.email, password=hashed_password, confirmed=True
+    )
 
     logger.debug(query)
 

@@ -21,6 +21,10 @@ passlib = {extras = ["bcrypt"] }
 httpx = "*"
 aiofiles = "*"
 b2sdk = "*"
+opentelemetry-exporter-jaeger = "*"
+opentelemetry-instrumentation-fastapi = "*"
+opentelemetry-instrumentation-logging = "*"
+starlette-exporter = "*"
 
 [dev-packages]
 ruff = "*"

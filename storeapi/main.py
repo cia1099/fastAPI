@@ -9,6 +9,12 @@ from storeapi.routers.users import router as users_router
 from storeapi.routers.upload import router as upload_router
 
 from storeapi.logging_conf import configure_logging
+from storeapi.jaeger import jaeger_exporter, tracer
+from opentelemetry.sdk.trace.export import BatchSpanProcessor
+from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+from opentelemetry.instrumentation.logging import LoggingInstrumentor
+
+from starlette_exporter import PrometheusMiddleware, handle_metrics
 
 logger = logging.getLogger(__name__)
 
@@ -27,6 +33,14 @@ app.add_middleware(CorrelationIdMiddleware)
 app.include_router(posts_router)
 app.include_router(users_router)
 app.include_router(upload_router)
+# PrometheusMiddleware used to monitor endpoints
+app.add_middleware(PrometheusMiddleware, app_name="prometheus")
+app.add_route("/metrics", handle_metrics)
+
+span_processor = BatchSpanProcessor(jaeger_exporter)
+tracer.add_span_processor(span_processor)
+FastAPIInstrumentor.instrument_app(app, tracer_provider=tracer)
+LoggingInstrumentor().instrument(set_logging_format=True)
 
 
 @app.get("/hello")
